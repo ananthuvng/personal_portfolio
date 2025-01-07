@@ -1,10 +1,10 @@
 export const _showLoadingScreen = () => {
   // Check if loading screen exists
-  let loadingScreen = document.getElementById("loading-screen");
+  let loadingScreen = document.getElementById('loading-screen');
 
   if (!loadingScreen) {
-    loadingScreen = document.createElement("div");
-    loadingScreen.id = "loading-screen";
+    loadingScreen = document.createElement('div');
+    loadingScreen.id = 'loading-screen';
     loadingScreen.style.cssText = `
         position: fixed;
         top: 0;
@@ -24,7 +24,7 @@ export const _showLoadingScreen = () => {
       `;
 
     // Animated loading container
-    const loadingContainer = document.createElement("div");
+    const loadingContainer = document.createElement('div');
     loadingContainer.style.cssText = `
         width: 80%;
         max-width: 500px;
@@ -40,8 +40,8 @@ export const _showLoadingScreen = () => {
       `;
 
     // Loading bar
-    const loadingBar = document.createElement("div");
-    loadingBar.id = "loading-bar";
+    const loadingBar = document.createElement('div');
+    loadingBar.id = 'loading-bar';
     loadingBar.style.cssText = `
         width: 0;
         height: 6px;
@@ -50,29 +50,29 @@ export const _showLoadingScreen = () => {
       `;
 
     // Loading text
-    const loadingText = document.createElement("div");
-    loadingText.id = "loading-text";
+    const loadingText = document.createElement('div');
+    loadingText.id = 'loading-text';
     loadingText.style.cssText = `
         font-size: 18px;
         font-weight: 300;
         margin-bottom: 10px;
         opacity: 0.7;
       `;
-    loadingText.textContent = "Loading resources...";
+    loadingText.textContent = 'Loading resources...';
 
     // Percentage text
-    const percentText = document.createElement("div");
-    percentText.id = "percent-text";
+    const percentText = document.createElement('div');
+    percentText.id = 'percent-text';
     percentText.style.cssText = `
         font-size: 24px;
         font-weight: bold;
         margin-top: 10px;
         color: #00f5d4;
       `;
-    percentText.textContent = "0%";
+    percentText.textContent = '0%';
 
     // Spinning loader
-    const spinner = document.createElement("div");
+    const spinner = document.createElement('div');
     spinner.style.cssText = `
         width: 50px;
         height: 50px;
@@ -84,7 +84,7 @@ export const _showLoadingScreen = () => {
       `;
 
     // Add spinning animation
-    const styleSheet = document.createElement("style");
+    const styleSheet = document.createElement('style');
     styleSheet.textContent = `
         @keyframes spin {
           0% { transform: rotate(0deg); }
@@ -107,8 +107,8 @@ export const _showLoadingScreen = () => {
 };
 
 export const _updateLoadingProgress = (progress) => {
-  const loadingBar = document.getElementById("loading-bar");
-  const percentText = document.getElementById("percent-text");
+  const loadingBar = document.getElementById('loading-bar');
+  const percentText = document.getElementById('percent-text');
 
   if (loadingBar) {
     loadingBar.style.width = `${progress}%`;
@@ -120,11 +120,11 @@ export const _updateLoadingProgress = (progress) => {
 };
 
 export const _hideLoadingScreen = () => {
-  const loadingScreen = document.getElementById("loading-screen");
+  const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen) {
     // Optional: Add a fade-out animation
-    loadingScreen.style.opacity = "0";
-    loadingScreen.style.transition = "opacity 0.5s ease-out";
+    loadingScreen.style.opacity = '0';
+    loadingScreen.style.transition = 'opacity 0.5s ease-out';
 
     setTimeout(() => {
       loadingScreen.remove();

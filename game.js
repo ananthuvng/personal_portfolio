@@ -1,97 +1,91 @@
 export function startSpaceShooterGame(windowStateManager) {
   // Prevent multiple game instances
-  if (document.getElementById("game-container")) {
+  if (document.getElementById('game-container')) {
     return;
   }
 
   // Create the game container
-  const gameContainer = document.createElement("div");
-  gameContainer.id = "game-container";
-  gameContainer.style.position = "fixed";
-  gameContainer.style.top = "0";
-  gameContainer.style.left = "0";
-  gameContainer.style.width = "100%";
-  gameContainer.style.height = "100%";
-  gameContainer.style.backgroundColor = "black";
-  gameContainer.style.zIndex = "9999";
-  gameContainer.style.display = "flex";
-  gameContainer.style.alignItems = "center";
-  gameContainer.style.justifyContent = "center";
-  gameContainer.style.opacity = "0";
-  gameContainer.style.transition = "opacity 0.3s ease-in-out";
+  const gameContainer = document.createElement('div');
+  gameContainer.id = 'game-container';
+  gameContainer.style.position = 'fixed';
+  gameContainer.style.top = '0';
+  gameContainer.style.left = '0';
+  gameContainer.style.width = '100%';
+  gameContainer.style.height = '100%';
+  gameContainer.style.backgroundColor = 'black';
+  gameContainer.style.zIndex = '9999';
+  gameContainer.style.display = 'flex';
+  gameContainer.style.alignItems = 'center';
+  gameContainer.style.justifyContent = 'center';
+  gameContainer.style.opacity = '0';
+  gameContainer.style.transition = 'opacity 0.3s ease-in-out';
 
   // Create the canvas for the game
-  const canvas = document.createElement("canvas");
-  canvas.id = "gameCanvas";
-  const ctx = canvas.getContext("2d");
+  const canvas = document.createElement('canvas');
+  canvas.id = 'gameCanvas';
+  const ctx = canvas.getContext('2d');
   canvas.width = Math.min(window.innerWidth * 0.8, 800); // Max width of 800
   canvas.height = Math.min(window.innerHeight * 0.8, 600); // Max height of 600
   gameContainer.appendChild(canvas);
 
   // Create the close button
-  const closeBtn = document.createElement("div");
-  closeBtn.innerHTML = "✕";
-  closeBtn.id = "close-btn";
-  closeBtn.style.position = "absolute";
-  closeBtn.style.top = "10px";
-  closeBtn.style.right = "10px";
-  closeBtn.style.color = "white";
-  closeBtn.style.fontSize = "28px";
-  closeBtn.style.cursor = "pointer";
-  closeBtn.style.padding = "10px";
-  closeBtn.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
-  closeBtn.style.borderRadius = "50%";
-  closeBtn.style.transition = "background-color 0.3s, transform 0.3s";
-  closeBtn.addEventListener("mouseenter", () => {
-    closeBtn.style.backgroundColor = "rgba(38, 255, 253, .5)";
-    closeBtn.style.transform = "scale(1.1)";
+  const closeBtn = document.createElement('div');
+  closeBtn.innerHTML = '✕';
+  closeBtn.id = 'close-btn';
+  closeBtn.style.position = 'absolute';
+  closeBtn.style.top = '10px';
+  closeBtn.style.right = '10px';
+  closeBtn.style.color = 'white';
+  closeBtn.style.fontSize = '28px';
+  closeBtn.style.cursor = 'pointer';
+  closeBtn.style.padding = '10px';
+  closeBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+  closeBtn.style.borderRadius = '50%';
+  closeBtn.style.transition = 'background-color 0.3s, transform 0.3s';
+  closeBtn.addEventListener('mouseenter', () => {
+    closeBtn.style.backgroundColor = 'rgba(38, 255, 253, .5)';
+    closeBtn.style.transform = 'scale(1.1)';
   });
-  closeBtn.addEventListener("mouseleave", () => {
-    closeBtn.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
-    closeBtn.style.transform = "scale(1)";
+  closeBtn.addEventListener('mouseleave', () => {
+    closeBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+    closeBtn.style.transform = 'scale(1)';
   });
 
-  // Create score display
-  const scoreDisplay = document.createElement("div");
-  scoreDisplay.className = "score";
-  scoreDisplay.style.position = "fixed";
-  scoreDisplay.style.top = "20px";
-  scoreDisplay.style.left = "20px";
-  scoreDisplay.style.color = "white";
-  scoreDisplay.style.fontSize = "24px";
-  scoreDisplay.innerText = "Score: 0";
+  const scoreDisplay = document.createElement('div');
+  scoreDisplay.className = 'score';
+  scoreDisplay.style.position = 'fixed';
+  scoreDisplay.style.top = '20px';
+  scoreDisplay.style.left = '20px';
+  scoreDisplay.style.color = 'white';
+  scoreDisplay.style.fontSize = '24px';
+  scoreDisplay.innerText = 'Score: 0';
   gameContainer.appendChild(scoreDisplay);
 
-  // Add the game container and the close button to the document
   document.body.appendChild(gameContainer);
   gameContainer.appendChild(closeBtn);
 
-  // Initialize game variables
   let score = 0;
   let gameOver = false;
   let animationFrameId = null;
   let spawnIntervalId = null;
   let lastBulletTime = 0;
-  const BULLET_COOLDOWN = 250; // Milliseconds between bullets
+  const BULLET_COOLDOWN = 250;
 
-  // Load game images
   const images = {
     player: new Image(),
     enemy: new Image(),
     bullet: new Image(),
   };
 
-  // Set image sources (replace with your actual image paths)
-  images.player.src = "./resources/shooter.png";
-  images.enemy.src = "./resources/enemy.png";
-  images.bullet.src = "./resources/bullet.png";
+  images.player.src = './resources/images/shooter.png';
+  images.enemy.src = './resources/images/enemy.png';
+  images.bullet.src = './resources/images/bullet.png';
 
-  // Player object
   const player = {
     x: canvas.width / 2 - 50,
     y: canvas.height - 100,
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
     speed: 5,
     dx: 0,
   };
@@ -99,9 +93,8 @@ export function startSpaceShooterGame(windowStateManager) {
   const bullets = [];
   const enemies = [];
   const enemySpeed = 3;
-  const enemySpawnRate = 1000; // Spawn an enemy every second
+  const enemySpawnRate = 1000;
 
-  // Wait for images to load
   let imagesLoaded = 0;
   const totalImages = Object.keys(images).length;
 
@@ -112,12 +105,10 @@ export function startSpaceShooterGame(windowStateManager) {
     }
   }
 
-  // Add load event listeners to images
   Object.values(images).forEach((img) => {
-    img.addEventListener("load", checkImagesLoaded);
+    img.addEventListener('load', checkImagesLoaded);
   });
 
-  // Reset the game state
   function resetGame() {
     score = 0;
     gameOver = false;
@@ -126,17 +117,17 @@ export function startSpaceShooterGame(windowStateManager) {
     player.dx = 0;
     bullets.length = 0;
     enemies.length = 0;
-    scoreDisplay.innerText = "Score: 0";
+    scoreDisplay.innerText = 'Score: 0';
 
     // Clear any existing event listeners
-    document.removeEventListener("keydown", movePlayer);
-    document.removeEventListener("keyup", stopPlayerMovement);
-    document.removeEventListener("click", handleShoot);
+    document.removeEventListener('keydown', movePlayer);
+    document.removeEventListener('keyup', stopPlayerMovement);
+    document.removeEventListener('keydown', handleShoot); // Remove right-click shoot listener
 
     // Add event listeners for the new game
-    document.addEventListener("keydown", movePlayer);
-    document.addEventListener("keyup", stopPlayerMovement);
-    document.addEventListener("click", handleShoot);
+    document.addEventListener('keydown', movePlayer);
+    document.addEventListener('keyup', stopPlayerMovement);
+    document.addEventListener('keydown', handleShoot); // Spacebar for shooting
   }
 
   // Update the player's position based on user input
@@ -156,25 +147,25 @@ export function startSpaceShooterGame(windowStateManager) {
       player.x,
       player.y,
       player.width,
-      player.height
+      player.height,
     );
   }
 
   // Handle keyboard input for moving the player
   function movePlayer(e) {
-    if (e.key === "ArrowLeft" || e.key === "a") {
+    if (e.key === 'ArrowLeft' || e.key === 'a') {
       player.dx = -player.speed;
-    } else if (e.key === "ArrowRight" || e.key === "d") {
+    } else if (e.key === 'ArrowRight' || e.key === 'd') {
       player.dx = player.speed;
     }
   }
 
   function stopPlayerMovement(e) {
     if (
-      e.key === "ArrowLeft" ||
-      e.key === "ArrowRight" ||
-      e.key === "a" ||
-      e.key === "d"
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'a' ||
+      e.key === 'd'
     ) {
       player.dx = 0;
     }
@@ -182,10 +173,13 @@ export function startSpaceShooterGame(windowStateManager) {
 
   // Improved bullet creation with cooldown
   function handleShoot(e) {
-    const currentTime = Date.now();
-    if (currentTime - lastBulletTime > BULLET_COOLDOWN) {
-      createBullet();
-      lastBulletTime = currentTime;
+    if (e.key === ' ' || e.key === 'Spacebar') {
+      // Spacebar to shoot
+      const currentTime = Date.now();
+      if (currentTime - lastBulletTime > BULLET_COOLDOWN) {
+        createBullet();
+        lastBulletTime = currentTime;
+      }
     }
   }
 
@@ -215,7 +209,7 @@ export function startSpaceShooterGame(windowStateManager) {
         bullet.x,
         bullet.y,
         bullet.width,
-        bullet.height
+        bullet.height,
       );
     });
   }
@@ -282,7 +276,7 @@ export function startSpaceShooterGame(windowStateManager) {
   // Game loop
   function gameLoop() {
     // Clear the canvas with black background
-    ctx.fillStyle = "black";
+    ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (gameOver) {
@@ -290,7 +284,7 @@ export function startSpaceShooterGame(windowStateManager) {
       clearInterval(spawnIntervalId);
 
       const playAgain = confirm(
-        `Game Over! Final Score: ${score}\nDo you want to play again?`
+        `Game Over! Final Score: ${score}\nDo you want to play again?`,
       );
       if (playAgain) {
         resetGame();
@@ -329,15 +323,15 @@ export function startSpaceShooterGame(windowStateManager) {
   }
 
   // Close button functionality
-  closeBtn.addEventListener("click", closeGame);
+  closeBtn.addEventListener('click', closeGame);
 
   function closeGame() {
     gameOver = true;
 
     // Remove all event listeners
-    document.removeEventListener("keydown", movePlayer);
-    document.removeEventListener("keyup", stopPlayerMovement);
-    document.removeEventListener("click", handleShoot);
+    document.removeEventListener('keydown', movePlayer);
+    document.removeEventListener('keyup', stopPlayerMovement);
+    document.removeEventListener('keydown', handleShoot);
 
     // Cancel animation and intervals
     if (animationFrameId) {
@@ -348,7 +342,7 @@ export function startSpaceShooterGame(windowStateManager) {
     }
 
     // Fade out and remove game container
-    gameContainer.style.opacity = "0";
+    gameContainer.style.opacity = '0';
     setTimeout(() => {
       document.body.removeChild(gameContainer);
 
@@ -361,6 +355,6 @@ export function startSpaceShooterGame(windowStateManager) {
 
   // Show the game container with a slight delay
   setTimeout(() => {
-    gameContainer.style.opacity = "1";
+    gameContainer.style.opacity = '1';
   }, 10);
 }

@@ -1,122 +1,227 @@
-export function showAbout(windowStateManager) {
-  // Create the popup container
-  const popup = document.createElement("div");
-  popup.id = "about-popup"; // Add an ID for easier debugging
-  popup.style.position = "fixed";
-  popup.style.top = "0";
-  popup.style.left = "0";
-  popup.style.width = "100%";
-  popup.style.height = "100%";
-  popup.style.backgroundColor = "rgba(0,0,0,0.7)";
-  popup.style.zIndex = "9999";
-  popup.style.display = "flex";
-  popup.style.alignItems = "center";
-  popup.style.justifyContent = "center";
-  popup.style.opacity = "0";
-  popup.style.transition = "opacity 0.3s ease-in-out"; // Transition for fade-in/out
+export function sliderShow(windowStateManager, images) {
+  const popup = document.createElement('div');
+  popup.id = 'about-popup';
+  Object.assign(popup.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    zIndex: '9999',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: '0',
+    transition: 'opacity 0.3s ease-in-out',
+  });
 
-  // Create image container
-  const imageContainer = document.createElement("div");
-  imageContainer.style.position = "relative";
-  imageContainer.style.display = "flex";
-  imageContainer.style.alignItems = "center";
-  imageContainer.style.justifyContent = "center";
-  imageContainer.style.overflow = "hidden"; // Ensure the image doesn't overflow the container
-  imageContainer.style.maxWidth = "90%"; // Limit container width
-  imageContainer.style.maxHeight = "90%"; // Limit container height
+  const imageContainer = document.createElement('div');
+  Object.assign(imageContainer.style, {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    width: '80%',
+    height: '80vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: '10px',
+    padding: '2%',
+  });
 
-  // Create image
-  const image = document.createElement("img");
-  image.src = "./resources/about.png";
-  image.style.display = "block";
-  image.style.maxWidth = "100%";
-  image.style.maxHeight = "100%";
-  image.style.objectFit = "contain"; // Preserve aspect ratio
+  const sliderContainer = document.createElement('div');
+  Object.assign(sliderContainer.style, {
+    position: 'relative',
+    overflow: 'hidden',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  });
 
-  // Wait for the image to load and set its natural dimensions
-  image.onload = () => {
-    // If the image's natural size is larger than the container, apply the limit
-    const imgWidth = image.naturalWidth;
-    const imgHeight = image.naturalHeight;
+  const imageWrapper = document.createElement('div');
+  Object.assign(imageWrapper.style, {
+    display: 'flex',
+    transition: 'transform 0.5s ease',
+    width: '100%',
+    height: '100%',
+  });
 
-    // Adjust container size based on image size while respecting the max limits
-    const maxContainerWidth = window.innerWidth * 0.9;
-    const maxContainerHeight = window.innerHeight * 0.9;
+  let currentImageIndex = 0;
 
-    if (imgWidth > maxContainerWidth || imgHeight > maxContainerHeight) {
-      const scale = Math.min(
-        maxContainerWidth / imgWidth,
-        maxContainerHeight / imgHeight
-      );
-      image.style.width = `${imgWidth * scale}px`;
-      image.style.height = `${imgHeight * scale}px`;
-    } else {
-      image.style.width = `${imgWidth}px`;
-      image.style.height = `${imgHeight}px`;
-    }
+  images.forEach((imgSrc, index) => {
+    const imgContainer = document.createElement('div');
+    Object.assign(imgContainer.style, {
+      minWidth: '100%',
+      height: '100%',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexShrink: '0',
+    });
 
-    // Now make the popup visible after image dimensions are set
-    setTimeout(() => {
-      popup.style.opacity = "1";
-    }, 10);
+    const img = document.createElement('img');
+    img.src = imgSrc;
+    Object.assign(img.style, {
+      maxWidth: '100%',
+      maxHeight: '100%',
+      objectFit: 'contain',
+      width: 'auto',
+      height: 'auto',
+    });
+
+    imgContainer.appendChild(img);
+    imageWrapper.appendChild(imgContainer);
+  });
+
+  if (images.length > 1) {
+    const createNavButton = (direction) => {
+      const button = document.createElement('div');
+      Object.assign(button.style, {
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(5px)',
+        width: '4vw',
+        height: '4vw',
+        minWidth: '40px',
+        minHeight: '40px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        color: 'white',
+        fontSize: '1.5vw',
+        fontWeight: 'bold',
+        userSelect: 'none',
+        zIndex: '2',
+      });
+
+      button.innerHTML = direction === 'prev' ? '<' : '>';
+      button.style[direction === 'prev' ? 'left' : 'right'] = '2%';
+
+      button.addEventListener('mouseenter', () => {
+        button.style.backgroundColor = 'rgba(38, 255, 253, 0.8)';
+        button.style.transform = 'translateY(-50%) scale(1.1)';
+      });
+
+      button.addEventListener('mouseleave', () => {
+        button.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        button.style.transform = 'translateY(-50%) scale(1)';
+      });
+
+      return button;
+    };
+
+    const prevButton = createNavButton('prev');
+    const nextButton = createNavButton('next');
+
+    prevButton.addEventListener('click', () => {
+      if (currentImageIndex > 0) {
+        currentImageIndex--;
+      } else {
+        currentImageIndex = images.length - 1;
+      }
+      imageWrapper.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+    });
+
+    nextButton.addEventListener('click', () => {
+      if (currentImageIndex < images.length - 1) {
+        currentImageIndex++;
+      } else {
+        currentImageIndex = 0;
+      }
+      imageWrapper.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+    });
+
+    imageContainer.appendChild(prevButton);
+    imageContainer.appendChild(nextButton);
+  }
+
+  const closeButton = document.createElement('div');
+  Object.assign(closeButton.style, {
+    position: 'absolute',
+    top: '2%',
+    right: '2%',
+    width: '3vw',
+    height: '3vw',
+    minWidth: '30px',
+    minHeight: '30px',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(5px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    zIndex: '1000',
+  });
+
+  const closeIcon = document.createElement('div');
+  Object.assign(closeIcon.style, {
+    position: 'relative',
+    width: '50%',
+    height: '50%',
+  });
+
+  const line1 = document.createElement('div');
+  const line2 = document.createElement('div');
+  const lineStyles = {
+    position: 'absolute',
+    width: '100%',
+    height: '2px',
+    backgroundColor: 'white',
+    top: '50%',
+    left: '0',
+    transform: 'translateY(-50%)',
+    transition: 'transform 0.3s ease',
   };
 
-  // Create close button
-  const closeButton = document.createElement("div");
-  closeButton.innerHTML = "✕";
-  closeButton.style.position = "absolute";
-  closeButton.style.top = "10px";
-  closeButton.style.right = "10px";
-  closeButton.style.color = "white";
-  closeButton.style.fontSize = "28px"; // Slightly bigger font for better visibility
-  closeButton.style.cursor = "pointer";
-  closeButton.style.width = "40px";
-  closeButton.style.height = "40px";
-  closeButton.style.textAlign = "center";
-  closeButton.style.borderRadius = "50%";
-  closeButton.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
-  closeButton.style.display = "flex";
-  closeButton.style.alignItems = "center";
-  closeButton.style.justifyContent = "center";
-  closeButton.style.transition =
-    "background-color 0.3s ease, transform 0.3s ease";
+  Object.assign(line1.style, { ...lineStyles, transform: 'rotate(45deg)' });
+  Object.assign(line2.style, { ...lineStyles, transform: 'rotate(-45deg)' });
 
-  // Hover effect for close button
-  closeButton.addEventListener("mouseenter", () => {
-    closeButton.style.backgroundColor = "rgba(38, 255, 253, .5)";
-    closeButton.style.transform = "scale(1.1)";
-  });
-  closeButton.addEventListener("mouseleave", () => {
-    closeButton.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
-    closeButton.style.transform = "scale(1)";
+  closeIcon.appendChild(line1);
+  closeIcon.appendChild(line2);
+  closeButton.appendChild(closeIcon);
+
+  closeButton.addEventListener('mouseenter', () => {
+    closeButton.style.backgroundColor = 'rgba(38, 255, 253, 0.8)';
+    closeButton.style.transform = 'rotate(90deg)';
   });
 
-  // Close functionality
+  closeButton.addEventListener('mouseleave', () => {
+    closeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    closeButton.style.transform = 'rotate(0deg)';
+  });
+
   const closePopup = () => {
-    popup.style.opacity = "0"; // Fade out before removing
+    popup.style.opacity = '0';
     if (windowStateManager) {
-        windowStateManager._onaAnotherWindow = false;
-      }
+      windowStateManager._onaAnotherWindow = false;
+    }
     setTimeout(() => {
       document.body.removeChild(popup);
-    }, 300); // Wait for the fade-out to complete
+    }, 300);
   };
 
-  closeButton.addEventListener("click", closePopup);
-  popup.addEventListener("click", (e) => {
+  closeButton.addEventListener('click', closePopup);
+  popup.addEventListener('click', (e) => {
     if (e.target === popup) closePopup();
   });
 
-  // Assemble the popup
+  sliderContainer.appendChild(imageWrapper);
+  imageContainer.appendChild(sliderContainer);
   imageContainer.appendChild(closeButton);
-  imageContainer.appendChild(image);
   popup.appendChild(imageContainer);
 
-  // Add to document
   document.body.appendChild(popup);
-
-  // Wait for image load and apply transitions afterward
   setTimeout(() => {
-    popup.style.opacity = "1";
-  }, 10); // Slight delay to trigger transition
+    popup.style.opacity = '1';
+  }, 10);
 }

@@ -1,15 +1,26 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js";
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
 
-import { FBXLoader } from "https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js";
+import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 import {
   _hideLoadingScreen,
   _showLoadingScreen,
   _updateLoadingProgress,
-} from "./loading.js";
-import { showAbout } from "./about.js";
-import { startSpaceShooterGame } from "./game.js";
-import { startStreetFighterGame } from "./game2.js";
+} from './loading.js';
+import { sliderShow } from './about.js';
+import { startSpaceShooterGame } from './game.js';
+import {
+  checkIntersection,
+  createBox3,
+  createBox3Debug,
+  createPlane,
+  findChildByName,
+  isDescendantOf,
+} from './utils.js';
+import { fenceDefinitions, objectsDefinitions } from './const.js';
+import { CharacterFSM } from './characterFSM.js';
+import { ThirdPersonCamera } from './thirdPersonCamera.js';
+import { createModernDesktop } from './osinterface.js';
 
 class BasicCharacterControllerProxy {
   constructor(animations) {
@@ -40,8 +51,34 @@ class BasicCharacterController {
     this._animations = {};
     this._input = new BasicCharacterControllerInput();
     this._stateMachine = new CharacterFSM(
-      new BasicCharacterControllerProxy(this._animations)
+      new BasicCharacterControllerProxy(this._animations),
     );
+    this._fence = fenceDefinitions.map((fence) => {
+      const fencebox = createBox3(
+        fence.width,
+        fence.length,
+        fence.height,
+        fence.x,
+        fence.y,
+        fence.z,
+        fence.angle,
+      );
+      return fencebox;
+    });
+    this._objects = objectsDefinitions.map((object) => {
+      const objectBox = createBox3(
+        object.width,
+        object.length,
+        object.height,
+        object.x,
+        object.y,
+        object.z,
+        object.angle,
+        object.color,
+      );
+      this._params.scene.add(objectBox);
+      return objectBox;
+    });
     this._onaAnotherWindow = false;
     this._LoadModels();
 
@@ -49,65 +86,45 @@ class BasicCharacterController {
   }
 
   _setupAudio() {
-    // Create an audio listener
     this._audioListener = new THREE.AudioListener();
     this._params.camera.add(this._audioListener);
-
-    // Create audio source for walking
     this._walkingSound = new THREE.Audio(this._audioListener);
-
-    // Load walking sound
     const audioLoader = new THREE.AudioLoader();
-    audioLoader.load("./resources/walking.mp3", (buffer) => {
+    audioLoader.load('./resources/audio/walking.mp3', (buffer) => {
       this._walkingSound.setBuffer(buffer);
       this._walkingSound.setLoop(true);
       this._walkingSound.setVolume(0.5);
     });
   }
+
   _updateSound(state) {
     if (
       !this._walkingSound.isPlaying &&
-      (state === "walk" || state === "run" || state === "walkback")
+      (state === 'walk' || state === 'run' || state === 'walkback')
     ) {
       this._walkingSound.play();
-      // Set playback rate based on state
-      this._walkingSound.setPlaybackRate(state === "run" ? 1.8 : 1.0);
+      this._walkingSound.setPlaybackRate(state === 'run' ? 1.8 : 1.0);
     } else if (
       this._walkingSound.isPlaying &&
-      state !== "walk" &&
-      state !== "run" &&
-      state !== "walkback"
+      state !== 'walk' &&
+      state !== 'run' &&
+      state !== 'walkback'
     ) {
       this._walkingSound.stop();
     } else if (this._walkingSound.isPlaying) {
-      // Update playback rate if already playing
-      this._walkingSound.setPlaybackRate(state === "run" ? 1.8 : 1.0);
+      this._walkingSound.setPlaybackRate(state === 'run' ? 1.8 : 1.0);
     }
   }
 
-  _findChildByName = (parent, targetName) => {
-    if (parent.name === targetName) {
-      return parent;
-    } else {
-      for (let child of parent.children) {
-        const foundInNestedChildren = this._findChildByName(child, targetName);
-        if (foundInNestedChildren) {
-          return foundInNestedChildren;
-        }
-      }
-    }
-  };
   _LoadModels() {
-    // Set up the LoadingManager
     _showLoadingScreen();
-
     this._manager = new THREE.LoadingManager(
       // onLoad callback
       () => {
-        console.log("All models loaded successfully");
+        console.log('All models loaded successfully');
         _hideLoadingScreen();
         if (this._stateMachine) {
-          this._stateMachine.SetState("idle");
+          this._stateMachine.SetState('idle');
         }
       },
       // onProgress callback
@@ -118,29 +135,43 @@ class BasicCharacterController {
       // onError callback
       (url, error) => {
         console.error(`Error loading ${url}: ${error}`);
-      }
+      },
     );
 
     const loader = new FBXLoader(this._manager); // Use the manager here
-    loader.setPath("./resources/models/");
-    loader.load("screennew.fbx", (fbx) => {
+    loader.setPath('./resources/models/');
+    loader.load('about.fbx', (fbx) => {
       fbx.traverse((c) => {
-        // c.castShadow = true;
+        c.castShadow = true;
         if (c.material) {
           c.material.transparent = true;
-          c.material.opacity = 3; // Adjust this value for desired transparency
+          c.material.opacity = 3;
         }
       });
       fbx.rotation.y = -Math.PI / 2;
-      fbx.scale.setScalar(60);
-      fbx.position.set(0, 18, -13);
+      fbx.scale.setScalar(50);
+      fbx.position.set(0, 15, -8);
 
       this._params.scene.add(fbx);
 
       this._about = fbx;
     });
 
-    loader.load("project1.fbx", (fbx) => {
+    loader.load('table.fbx', (fbx) => {
+      fbx.traverse((c) => {
+        if (c.material) {
+          c.material.transparent = true;
+          c.material.opacity = 6;
+        }
+      });
+      fbx.rotation.y = -Math.PI / 2;
+      fbx.scale.setScalar(0.068);
+      fbx.position.set(308, 0, 0);
+      this._table = fbx;
+      this._params.scene.add(fbx);
+    });
+
+    loader.load('project.fbx', (fbx) => {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
@@ -153,7 +184,7 @@ class BasicCharacterController {
       this._params.scene.add(fbx);
       this._project = fbx;
     });
-    loader.load("blog.fbx", (fbx) => {
+    loader.load('blog.fbx', (fbx) => {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
@@ -164,10 +195,10 @@ class BasicCharacterController {
       fbx.scale.setScalar(40);
       fbx.position.set(98, 15, 43);
       this._params.scene.add(fbx);
-      this._project = fbx;
+      this._blog = fbx;
     });
 
-    loader.load("dronefinal.fbx", (fbx) => {
+    loader.load('experience.fbx', (fbx) => {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
@@ -177,11 +208,11 @@ class BasicCharacterController {
       fbx.rotation.y = Math.PI / 2;
       fbx.scale.setScalar(0.4);
       fbx.position.set(110, 10, 0);
-
+      this._experience = fbx;
       this._params.scene.add(fbx);
     });
 
-    loader.load("projector.fbx", (fbx) => {
+    loader.load('projector.fbx', (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
@@ -198,16 +229,16 @@ class BasicCharacterController {
       this._params.scene.add(fbx);
     });
 
-    loader.load("screen2.fbx", (fbx) => {
+    loader.load('instruction.fbx', (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
-      // fbx.rotation.y = - Math.PI/2 ;
       fbx.scale.setScalar(3);
       fbx.position.set(-75, 0, -5);
+      this._instruction = fbx;
       this._params.scene.add(fbx);
     });
-    loader.load("spacecablecar.fbx", (fbx) => {
+    loader.load('spacecablecar.fbx', (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
@@ -220,13 +251,14 @@ class BasicCharacterController {
 
       this._carfly = fbx;
     });
-    loader.load("lounge.fbx", (fbx) => {
+    loader.load('lounge.fbx', (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
-      this._gaming = this._findChildByName(
+
+      this._gaming = findChildByName(
         fbx,
-        "Bar_completo2ARCADE_Bar_completo2Mat_Arcade_SI_0"
+        'Bar_completo2ARCADE_Bar_completo2Mat_Arcade_SI_0',
       );
 
       fbx.scale.setScalar(0.4);
@@ -234,18 +266,16 @@ class BasicCharacterController {
       fbx.rotation.y = -Math.PI / 2;
       this._params.scene.add(fbx);
     });
-    loader.load("entrance.fbx", (fbx) => {
+    loader.load('entrance.fbx', (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
 
       fbx.scale.setScalar(0.048);
       fbx.position.set(-17, 0, -155);
-      // fbx.rotation.y = -Math.PI / 2;
       this._params.scene.add(fbx);
     });
-    loader.load("scififence.fbx", (fbx) => {
-      // Prepare the base fence configuration
+    loader.load('scififence.fbx', (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
         if (c.material) {
@@ -254,10 +284,7 @@ class BasicCharacterController {
         }
       });
 
-      // Create an array to store all fence instances
       this._fences = [fbx];
-
-      // Predefined positions for the fences
       const positions = [
         { x: 105, z: -60, a: -Math.PI / 2 },
         { x: 105, z: -25, a: -Math.PI / 2 },
@@ -326,12 +353,24 @@ class BasicCharacterController {
       });
     });
 
-    loader.load("ananthu.fbx", (fbx) => {
+    loader.load('ananthu.fbx', (fbx) => {
       fbx.scale.setScalar(0.1);
       fbx.traverse((c) => {
         c.castShadow = true;
+        if (c.isMesh) {
+          const oldMaterial = c.material;
+          c.material = new THREE.MeshStandardMaterial({
+            color: oldMaterial.color,
+            map: oldMaterial.map,
+            metalness: 0.1,
+            roughness: 0.8,
+            morphTargets: true,
+            morphNormals: true,
+            skinning: true,
+          });
+        }
       });
-      fbx.position.set(-90, 0, 5);
+      fbx.position.set(-90, 0, 15);
       //how can i stop the moving ananthu.fbx model when it touchers the VendingMachineFinal01 as normal objects
       fbx.rotation.y = Math.PI / 2;
 
@@ -342,7 +381,7 @@ class BasicCharacterController {
 
       this._manager = new THREE.LoadingManager();
       this._manager.onLoad = () => {
-        this._stateMachine.SetState("idle");
+        this._stateMachine.SetState('idle');
       };
 
       const _OnLoad = (animName, anim) => {
@@ -356,48 +395,37 @@ class BasicCharacterController {
       };
 
       const loader = new FBXLoader(this._manager);
-      loader.setPath("./resources/models/");
-      loader.load("walking.fbx", (a) => {
-        _OnLoad("walk", a);
+      loader.setPath('./resources/models/');
+      loader.load('walking.fbx', (a) => {
+        _OnLoad('walk', a);
       });
-      loader.load("running.fbx", (a) => {
-        _OnLoad("run", a);
+      loader.load('running.fbx', (a) => {
+        _OnLoad('run', a);
       });
-      loader.load("breathing.fbx", (a) => {
-        _OnLoad("idle", a);
+      loader.load('breathing.fbx', (a) => {
+        _OnLoad('idle', a);
       });
-      loader.load("dancing.fbx", (a) => {
-        _OnLoad("dance", a);
+      loader.load('dancing.fbx', (a) => {
+        _OnLoad('dance', a);
       });
-      loader.load("walkingback.fbx", (a) => {
-        _OnLoad("walkback", a);
+      loader.load('walkingback.fbx', (a) => {
+        _OnLoad('walkback', a);
       });
-      loader.load("walkleft.fbx", (a) => {
-        _OnLoad("walkleft", a);
+      loader.load('walkleft.fbx', (a) => {
+        _OnLoad('walkleft', a);
       });
-      loader.load("walkright.fbx", (a) => {
-        _OnLoad("walkright", a);
+      loader.load('walkright.fbx', (a) => {
+        _OnLoad('walkright', a);
       });
     });
   }
 
   _AddMouseClickListener() {
     window.addEventListener(
-      "click",
+      'click',
       (event) => this._OnMouseClick(event),
-      false
+      false,
     );
-  }
-
-  _isDescendantOf(intersectedObject, targetObject) {
-    let currentObj = intersectedObject;
-    while (currentObj) {
-      if (currentObj === targetObject) {
-        return true;
-      }
-      currentObj = currentObj.parent;
-    }
-    return false;
   }
 
   // Usage in click and hover methods
@@ -412,17 +440,40 @@ class BasicCharacterController {
     // Check for intersections
     const intersects = this._raycaster.intersectObjects(
       this._params.scene.children,
-      true
+      true,
     );
 
-    if (intersects.length > 0) {
+    if (intersects.length > 0 && !this._onaAnotherWindow) {
       const isAboutClicked = intersects.some((intersect) =>
-        this._isDescendantOf(intersect.object, this._about)
+        isDescendantOf(intersect.object, this._about),
       );
 
       const isGamingClicked = intersects.some(
-        (intersect) => intersect.object === this._gaming
+        (intersect) => intersect.object === this._gaming,
       );
+
+      const isExperienceClicked = intersects.some((intersect) =>
+        isDescendantOf(intersect.object, this._experience),
+      );
+
+      const isBlogClicked = intersects.some((intersect) =>
+        isDescendantOf(intersect.object, this._blog),
+      );
+      const isProjectClicked = intersects.some((intersect) =>
+        isDescendantOf(intersect.object, this._project),
+      );
+
+      const isTableClicked = intersects.some((intersect) =>
+        isDescendantOf(intersect.object, this._table),
+      );
+      const isInstructionClicked = intersects.some((intersect) =>
+        isDescendantOf(intersect.object, this._instruction),
+      );
+
+      if (isTableClicked) {
+        this._onaAnotherWindow = true;
+        createModernDesktop(this);
+      }
 
       if (isGamingClicked) {
         this._onaAnotherWindow = true;
@@ -431,7 +482,31 @@ class BasicCharacterController {
 
       if (isAboutClicked) {
         this._onaAnotherWindow = true;
-        showAbout(this);
+        sliderShow(this, ['./resources/images/about.png']);
+      }
+      if (isBlogClicked) {
+        this._onaAnotherWindow = true;
+        sliderShow(this, ['./resources/images/blogs.png']);
+      }
+      if (isExperienceClicked) {
+        this._onaAnotherWindow = true;
+        sliderShow(this, [
+          './resources/images/experince.png',
+          './resources/images/ellucian.png',
+          './resources/images/cisco.png',
+        ]);
+      }
+      if (isProjectClicked) {
+        this._onaAnotherWindow = true;
+        sliderShow(this, [
+          './resources/images/projects.png',
+          './resources/images/souls.png',
+          './resources/images/sanchari.png',
+        ]);
+      }
+      if (isInstructionClicked) {
+        this._onaAnotherWindow = true;
+        sliderShow(this, ['./resources/images/instruction.png']);
       }
     }
   }
@@ -458,7 +533,7 @@ class BasicCharacterController {
     const frameDecceleration = new THREE.Vector3(
       velocity.x * this._decceleration.x,
       velocity.y * this._decceleration.y,
-      velocity.z * this._decceleration.z
+      velocity.z * this._decceleration.z,
     );
     frameDecceleration.multiplyScalar(timeInSeconds);
     frameDecceleration.z =
@@ -467,22 +542,29 @@ class BasicCharacterController {
 
     velocity.add(frameDecceleration);
 
-    // const vendingMachineBBox = new THREE.Box3().setFromObject(
-    //   this._vendingMachine
-    // );
-    // const fencesBBox = new THREE.Box3().setFromObject(
-    //   this._fences
-    // );
-    const characterBBox = new THREE.Box3().setFromObject(this._target);
-    const width = 15; // X-axis extent
-    const length = 10; // Z-axis extent
+    const characterPosition = this._target.position;
+    const boxSize = 4;
 
-    // Define the minimum and maximum points of the Box3
-    const min = new THREE.Vector3(-width / 2, 0, -length / 2); // Bottom-left corner
-    const max = new THREE.Vector3(width / 2, 0, length / 2); // Top-right corner
+    const characterBBox = new THREE.Box3(
+      new THREE.Vector3(
+        characterPosition.x - boxSize / 2,
+        characterPosition.y - boxSize / 2,
+        characterPosition.z - boxSize / 2,
+      ),
+      new THREE.Vector3(
+        characterPosition.x + boxSize / 2,
+        characterPosition.y + boxSize / 2,
+        characterPosition.z + boxSize / 2,
+      ),
+    );
 
-    // Create the Box3
-    // const officeBBox = new THREE.Box3(min, max);
+    const collidesWithAnyFence = this._fence.some((fence) =>
+      fence.intersectsBox(characterBBox),
+    );
+    const collidesWithAnyObjects = this._objects.some(
+      (obj) => obj.intersectsBox(characterBBox),
+      // checkIntersection(obj, characterBBox),
+    );
 
     this._stateMachine.Update(timeInSeconds, this._input);
 
@@ -496,31 +578,22 @@ class BasicCharacterController {
       acc.multiplyScalar(2.0);
     }
 
-    if (this._stateMachine._currentState.Name == "dance") {
+    if (this._stateMachine._currentState.Name == 'dance') {
       acc.multiplyScalar(0.0);
     }
     if (this._walkingSound && this._stateMachine._currentState) {
       this._updateSound(this._stateMachine._currentState.Name);
     }
-    // if (officeBBox.intersectsBox(characterBBox)) {
-    //   if (!this._input._keys.backward) {
-    //     velocity.x = 0;
-    //     velocity.y = 0;
-    //     velocity.z = 0;
-    //     // this._stateMachine.SetState("idle");
-    //   } else {
-    //     velocity.z -= acc.z * timeInSeconds;
-    //   }
-    // } else
-    if (
-      false
-      // vendingMachineBBox.intersectsBox(characterBBox)
-    ) {
-      if (!this._input._keys.backward) {
+
+    if (collidesWithAnyFence || collidesWithAnyObjects) {
+      if (
+        !this._input._keys.backward &&
+        !this._input._keys.right &&
+        !this._input._keys.left
+      ) {
         velocity.x = 0;
         velocity.y = 0;
         velocity.z = 0;
-        // this._stateMachine.SetState("idle");
       } else {
         velocity.z -= acc.z * timeInSeconds;
       }
@@ -550,7 +623,7 @@ class BasicCharacterController {
         _A.set(0, 1, 0);
         _Q.setFromAxisAngle(
           _A,
-          4.0 * Math.PI * timeInSeconds * this._acceleration.y
+          4.0 * Math.PI * timeInSeconds * this._acceleration.y,
         );
         _R.multiply(_Q);
       }
@@ -558,7 +631,7 @@ class BasicCharacterController {
         _A.set(0, 1, 0);
         _Q.setFromAxisAngle(
           _A,
-          4.0 * -Math.PI * timeInSeconds * this._acceleration.y
+          4.0 * -Math.PI * timeInSeconds * this._acceleration.y,
         );
         _R.multiply(_Q);
       }
@@ -607,8 +680,8 @@ class BasicCharacterControllerInput {
       moveLeft: false,
       moveRight: false,
     };
-    document.addEventListener("keydown", (e) => this._onKeyDown(e), false);
-    document.addEventListener("keyup", (e) => this._onKeyUp(e), false);
+    document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
+    document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
   }
 
   _onKeyDown(event) {
@@ -670,414 +743,7 @@ class BasicCharacterControllerInput {
   }
 }
 
-class FiniteStateMachine {
-  constructor() {
-    this._states = {};
-    this._currentState = null;
-  }
-
-  _AddState(name, type) {
-    this._states[name] = type;
-  }
-
-  SetState(name) {
-    const prevState = this._currentState;
-
-    if (prevState) {
-      if (prevState.Name == name) {
-        return;
-      }
-      prevState.Exit();
-    }
-
-    const state = new this._states[name](this);
-
-    this._currentState = state;
-    state.Enter(prevState);
-  }
-
-  Update(timeElapsed, input) {
-    if (this._currentState) {
-      this._currentState.Update(timeElapsed, input);
-    }
-  }
-}
-
-class CharacterFSM extends FiniteStateMachine {
-  constructor(proxy) {
-    super();
-    this._proxy = proxy;
-    this._Init();
-  }
-
-  _Init() {
-    this._AddState("idle", IdleState);
-    this._AddState("walk", WalkState);
-    this._AddState("walkback", WalkBackState);
-    this._AddState("run", RunState);
-    this._AddState("dance", DanceState);
-    this._AddState("walkleft", WalkLeftState);
-    this._AddState("walkright", WalkRightState);
-  }
-}
-
-class State {
-  constructor(parent) {
-    this._parent = parent;
-  }
-
-  Enter() {}
-  Exit() {}
-  Update() {}
-}
-
-class DanceState extends State {
-  constructor(parent) {
-    super(parent);
-
-    this._FinishedCallback = () => {
-      this._Finished();
-    };
-  }
-
-  get Name() {
-    return "dance";
-  }
-
-  Enter(prevState) {
-    const curAction = this._parent._proxy._animations["dance"].action;
-    const mixer = curAction.getMixer();
-    mixer.addEventListener("finished", this._FinishedCallback);
-
-    if (prevState) {
-      const prevAction = this._parent._proxy._animations[prevState.Name].action;
-
-      curAction.reset();
-      curAction.setLoop(THREE.LoopOnce, 1);
-      curAction.clampWhenFinished = true;
-      curAction.crossFadeFrom(prevAction, 0.2, true);
-      curAction.play();
-    } else {
-      curAction.play();
-    }
-  }
-
-  _Finished() {
-    this._Cleanup();
-    this._parent.SetState("idle");
-  }
-
-  _Cleanup() {
-    const action = this._parent._proxy._animations["dance"].action;
-
-    action.getMixer().removeEventListener("finished", this._CleanupCallback);
-  }
-
-  Exit() {
-    this._Cleanup();
-  }
-
-  Update(_) {}
-}
-
-class WalkState extends State {
-  constructor(parent) {
-    super(parent);
-  }
-
-  get Name() {
-    return "walk";
-  }
-
-  Enter(prevState) {
-    const curAction = this._parent._proxy._animations["walk"].action;
-    if (prevState) {
-      const prevAction = this._parent._proxy._animations[prevState.Name].action;
-
-      curAction.enabled = true;
-
-      if (prevState.Name == "run") {
-        const ratio =
-          curAction.getClip().duration / prevAction.getClip().duration;
-        curAction.time = prevAction.time * ratio;
-      } else {
-        curAction.time = 0.0;
-        curAction.setEffectiveTimeScale(1.0);
-        curAction.setEffectiveWeight(1.0);
-      }
-
-      curAction.crossFadeFrom(prevAction, 0.5, true);
-      curAction.play();
-    } else {
-      curAction.play();
-    }
-  }
-
-  Exit() {}
-
-  Update(timeElapsed, input) {
-    if (input._keys.forward || input._keys.backward) {
-      if (input._keys.shift) {
-        this._parent.SetState("run");
-      }
-      return;
-    }
-    if (input._keys.backward) {
-      if (!input._keys.shift) {
-        this._parent.SetState("walkbac");
-      }
-      return;
-    }
-
-    this._parent.SetState("idle");
-  }
-}
-
-class WalkBackState extends State {
-  constructor(parent) {
-    super(parent);
-  }
-
-  get Name() {
-    return "walkback";
-  }
-
-  Enter(prevState) {
-    const curAction = this._parent._proxy._animations["walkback"].action;
-    if (prevState) {
-      const prevAction = this._parent._proxy._animations[prevState.Name].action;
-
-      curAction.enabled = true;
-
-      if (prevState.Name == "walkback") {
-        const ratio =
-          curAction.getClip().duration / prevAction.getClip().duration;
-        curAction.time = prevAction.time * ratio;
-      } else {
-        curAction.time = 0.0;
-        curAction.setEffectiveTimeScale(1.0);
-        curAction.setEffectiveWeight(1.0);
-      }
-
-      curAction.crossFadeFrom(prevAction, 0.5, true);
-      curAction.play();
-    } else {
-      curAction.play();
-    }
-  }
-
-  Exit() {}
-
-  Update(timeElapsed, input) {
-    if (input._keys.forward || input._keys.backward) {
-      if (input._keys.shift) {
-        this._parent.SetState("run");
-      }
-      return;
-    }
-
-    this._parent.SetState("idle");
-  }
-}
-
-class RunState extends State {
-  constructor(parent) {
-    super(parent);
-  }
-
-  get Name() {
-    return "run";
-  }
-
-  Enter(prevState) {
-    const curAction = this._parent._proxy._animations["run"].action;
-    if (prevState) {
-      const prevAction = this._parent._proxy._animations[prevState.Name].action;
-
-      curAction.enabled = true;
-
-      if (prevState.Name == "walk") {
-        const ratio =
-          curAction.getClip().duration / prevAction.getClip().duration;
-        curAction.time = prevAction.time * ratio;
-      } else {
-        curAction.time = 0.0;
-        curAction.setEffectiveTimeScale(1.0);
-        curAction.setEffectiveWeight(1.0);
-      }
-
-      curAction.crossFadeFrom(prevAction, 0.5, true);
-      curAction.play();
-    } else {
-      curAction.play();
-    }
-  }
-
-  Exit() {}
-
-  Update(timeElapsed, input) {
-    if (input._keys.forward) {
-      if (!input._keys.shift) {
-        this._parent.SetState("walk");
-      }
-      return;
-    } else if (input._keys.backward) {
-      if (!input._keys.shift) {
-        this._parent.SetState("walkback");
-      }
-      return;
-    }
-
-    this._parent.SetState("idle");
-  }
-}
-
-class IdleState extends State {
-  constructor(parent) {
-    super(parent);
-  }
-
-  get Name() {
-    return "idle";
-  }
-
-  Enter(prevState) {
-    const idleAction = this._parent._proxy._animations["idle"].action;
-    if (prevState) {
-      const prevAction = this._parent._proxy._animations[prevState.Name].action;
-      idleAction.time = 0.0;
-      idleAction.enabled = true;
-      idleAction.setEffectiveTimeScale(1.0);
-      idleAction.setEffectiveWeight(1.0);
-      idleAction.crossFadeFrom(prevAction, 0.5, true);
-      idleAction.play();
-    } else {
-      idleAction.play();
-    }
-  }
-
-  Exit() {}
-
-  Update(_, input) {
-    if (input._keys.forward) {
-      this._parent.SetState("walk");
-    } else if (input._keys.backward) {
-      this._parent.SetState("walkback");
-    } else if (input._keys.space) {
-      this._parent.SetState("dance");
-    } else if (input._keys.moveLeft) {
-      this._parent.SetState("walkleft");
-    } else if (input._keys.moveRight) {
-      this._parent.SetState("walkright");
-    }
-  }
-}
-class WalkLeftState extends State {
-  constructor(parent) {
-    super(parent);
-  }
-
-  get Name() {
-    return "walkleft";
-  }
-
-  Enter(prevState) {
-    const curAction = this._parent._proxy._animations["walkleft"].action;
-    if (prevState) {
-      const prevAction = this._parent._proxy._animations[prevState.Name].action;
-      curAction.enabled = true;
-      curAction.time = 0.0;
-      curAction.setEffectiveTimeScale(1.0);
-      curAction.setEffectiveWeight(1.0);
-      curAction.crossFadeFrom(prevAction, 0.5, true);
-      curAction.play();
-    } else {
-      curAction.play();
-    }
-  }
-
-  Exit() {}
-
-  Update(timeElapsed, input) {
-    if (!input._keys.moveLeft) {
-      this._parent.SetState("idle"); // Transition to idle if no left movement
-    }
-  }
-}
-
-class WalkRightState extends State {
-  constructor(parent) {
-    super(parent);
-  }
-
-  get Name() {
-    return "walkright";
-  }
-
-  Enter(prevState) {
-    const curAction = this._parent._proxy._animations["walkright"].action;
-    if (prevState) {
-      const prevAction = this._parent._proxy._animations[prevState.Name].action;
-      curAction.enabled = true;
-      curAction.time = 0.0;
-      curAction.setEffectiveTimeScale(1.0);
-      curAction.setEffectiveWeight(1.0);
-      curAction.crossFadeFrom(prevAction, 0.5, true);
-      curAction.play();
-    } else {
-      curAction.play();
-    }
-  }
-
-  Exit() {}
-
-  Update(timeElapsed, input) {
-    if (!input._keys.moveRight) {
-      this._parent.SetState("idle"); // Transition to idle if no right movement
-    }
-  }
-}
-
-class ThirdPersonCamera {
-  constructor(params) {
-    this._params = params;
-    this._camera = params.camera;
-
-    this._currentPosition = new THREE.Vector3();
-    this._currentLookat = new THREE.Vector3();
-  }
-
-  _CalculateIdealOffset() {
-    const idealOffset = new THREE.Vector3(-10, 20, -28);
-    idealOffset.applyQuaternion(this._params.target.Rotation);
-    idealOffset.add(this._params.target.Position);
-    return idealOffset;
-  }
-
-  _CalculateIdealLookat() {
-    const idealLookat = new THREE.Vector3(0, 10, 50);
-    idealLookat.applyQuaternion(this._params.target.Rotation);
-    idealLookat.add(this._params.target.Position);
-    return idealLookat;
-  }
-
-  Update(timeElapsed) {
-    const idealOffset = this._CalculateIdealOffset();
-    const idealLookat = this._CalculateIdealLookat();
-
-    // const t = 0.05;
-    // const t = 4.0 * timeElapsed;
-    const t = 1.0 - Math.pow(0.001, timeElapsed);
-
-    this._currentPosition.lerp(idealOffset, t);
-    this._currentLookat.lerp(idealLookat, t);
-
-    this._camera.position.copy(this._currentPosition);
-    this._camera.lookAt(this._currentLookat);
-  }
-}
-
-class ThirdPersonCameraDemo {
+class PortfolioWorld {
   constructor() {
     this._Initialize();
   }
@@ -1095,147 +761,128 @@ class ThirdPersonCameraDemo {
     document.body.appendChild(this._threejs.domElement);
 
     window.addEventListener(
-      "resize",
+      'resize',
       () => {
         this._OnWindowResize();
       },
-      false
+      false,
     );
 
     const fov = 60;
-    const aspect = 1920 / 1080;
     const near = 1.0;
     const far = 1000.0;
-    this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    this._camera = new THREE.PerspectiveCamera(
+      fov,
+      window.innerWidth / window.innerHeight,
+      near,
+      far,
+    );
     this._camera.position.set(150, 10, 25);
 
     this._scene = new THREE.Scene();
+    // Main directional light (sun)
+    const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    mainLight.position.set(-50, 100, 50);
+    mainLight.target.position.set(0, 0, 0);
+    mainLight.castShadow = true;
+    mainLight.shadow.bias = -0.0001;
+    mainLight.shadow.mapSize.width = 4096;
+    mainLight.shadow.mapSize.height = 4096;
+    mainLight.shadow.camera.near = 0.5;
+    mainLight.shadow.camera.far = 500.0;
+    mainLight.shadow.camera.left = -200;
+    mainLight.shadow.camera.right = 200;
+    mainLight.shadow.camera.top = 200;
+    mainLight.shadow.camera.bottom = -200;
+    this._scene.add(mainLight);
 
-    let light = new THREE.DirectionalLight(0xfdfbd3, 0.3);
-    // Set light position and target
-    light.position.set(-200, 200, 200); // Position the light at the desired location
-    light.target.position.set(0, 0, 0); // Targeting the center (0, 0, 0)
+    // Ambient light for overall scene brightness
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.1);
+    this._scene.add(ambientLight);
 
-    // Enable casting shadows
-    light.castShadow = true;
+    // // Fill light to soften shadows
+    // const fillLight = new THREE.DirectionalLight(0xffffff, 0.1);
+    // fillLight.position.set(100, 50, -100);
+    // this._scene.add(fillLight);
 
-    // Adjust shadow bias (for preventing artifacts like shadow acne)
-    light.shadow.bias = -0.001;
-
-    // Set shadow map resolution for sharper shadows
-    light.shadow.mapSize.width = 4096; // Increase resolution for sharper shadows
-    light.shadow.mapSize.height = 4096;
-
-    // Adjust the near and far properties of the shadow camera
-    light.shadow.camera.near = 0.5; // Set near plane for the shadow camera
-    light.shadow.camera.far = 500.0; // Set far plane for the shadow camera
-
-    // Adjust the size of the shadow camera frustum (left, right, top, bottom)
-    light.shadow.camera.left = -200; // Set the left side of the frustum
-    light.shadow.camera.right = 200; // Set the right side of the frustum
-    light.shadow.camera.top = 200; // Set the top side of the frustum
-    light.shadow.camera.bottom = -200; // Set the bottom side of the frustum
-
-    this._scene.add(light);
-
-    light = new THREE.AmbientLight(0xffffff, 0.05);
-    this._scene.add(light);
+    // Back light for hair detail
+    const backLight = new THREE.DirectionalLight(0xffffff, 0.1);
+    backLight.position.set(0, 50, -100);
+    this._scene.add(backLight);
 
     const loader = new THREE.CubeTextureLoader();
     const texture = loader.load([
-      "./resources/right.png", // Positive X
-      "./resources/left.png", // Negative X
-      "./resources/top.png", // Positive Y
-      "./resources/bottom.png", // Negative Y
-      "./resources/front.png", // Positive Z
-      "./resources/back.png", // Negative Z
+      './resources/images/right.png',
+      './resources/images/left.png',
+      './resources/images/top.png',
+      './resources/images/bottom.png',
+      './resources/images/front.png',
+      './resources/images/back.png',
     ]);
-    texture.encoding = THREE.sRGBEncoding; // Ensure correct color encoding
+    texture.encoding = THREE.sRGBEncoding;
     this._scene.background = texture;
     const textureLoader = new THREE.TextureLoader();
-    const textureGround = textureLoader.load("./resources/AA.jpg");
+    const textureGround = textureLoader.load('./resources/images/ground.jpg');
 
-    // Configure the texture for repeating
     textureGround.wrapS = THREE.RepeatWrapping;
     textureGround.wrapT = THREE.RepeatWrapping;
     textureGround.repeat.set(10, 10);
+    const planeConfigs = [
+      {
+        width: 212,
+        height: 10,
+        depth: 175,
+        color: 0x0d0c0c,
+        rotationY: 0,
+        position: new THREE.Vector3(0, -5, 0),
+      },
+      {
+        width: 72,
+        height: 10,
+        depth: 105,
+        color: 0x0d0c0c,
+        rotationY: 0,
+        position: new THREE.Vector3(280, -5, 0),
+      },
+      {
+        width: 35,
+        height: 10,
+        depth: 158,
+        color: 0x0d0c0c,
+        rotationY: Math.PI / 2,
+        position: new THREE.Vector3(185, -5, 0),
+      },
+      {
+        width: 80,
+        height: 10,
+        depth: 44,
+        color: 0x0d0c0c,
+        rotationY: Math.PI / 2,
+        position: new THREE.Vector3(-17, -5, -127),
+      },
+      {
+        width: 60,
+        height: 10,
+        depth: 60,
+        color: 0x0d0c0c,
+        rotationY: 0,
+        position: new THREE.Vector3(-850, -5, -350),
+      },
+    ];
 
-    // First (main) plane
-    const mainPlane = new THREE.Mesh(
-      new THREE.BoxGeometry(212, 10, 175), // width, height, depth
-      new THREE.MeshStandardMaterial({
-        map: textureGround,
-      })
-    );
+    planeConfigs.forEach((config) => {
+      const plane = createPlane(
+        config.width,
+        config.height,
+        config.depth,
+        textureGround,
+        config.color,
+        config.rotationY,
+        config.position,
+      );
+      this._scene.add(plane);
+    });
 
-    // Second (smaller) plane
-    const secondaryPlane = new THREE.Mesh(
-      new THREE.BoxGeometry(72, 10, 105), // width, height, depth
-      new THREE.MeshStandardMaterial({
-        map: textureGround,
-        color: 0xcccccc,
-      })
-    );
-
-    const thirdPlane = new THREE.Mesh(
-      new THREE.BoxGeometry(35, 10, 158), // width, height, depth
-      new THREE.MeshStandardMaterial({
-        map: textureGround,
-        color: 0xcccccc,
-      })
-    );
-    const fourthPlane = new THREE.Mesh(
-      new THREE.BoxGeometry(80, 10, 44), // width, height, depth
-      new THREE.MeshStandardMaterial({
-        map: textureGround,
-        color: 0xcccccc,
-      })
-    );
-
-    // Set common properties
-    mainPlane.castShadow = false;
-    mainPlane.receiveShadow = true;
-
-    secondaryPlane.castShadow = false;
-    secondaryPlane.receiveShadow = true;
-
-    thirdPlane.rotation.y = Math.PI / 2;
-    thirdPlane.castShadow = false;
-    thirdPlane.receiveShadow = true;
-    fourthPlane.rotation.y = Math.PI / 2;
-
-    fourthPlane.castShadow = false;
-    fourthPlane.receiveShadow = true;
-    mainPlane.position.set(
-      0, // x
-      -5, // y (centered on the ground)
-      0 // z
-    );
-    // Position the planes
-    secondaryPlane.position.set(
-      280, // x
-      -5, // y (centered on the ground)
-      0 // z
-    );
-
-    thirdPlane.position.set(
-      185, // x
-      -5, // y (centered on the ground)
-      0 // z
-    );
-
-    fourthPlane.position.set(
-      -17, // x
-      -5, // y (centered on the ground)
-      -127 // z
-    );
-
-    // Add planes to the scene
-    this._scene.add(mainPlane);
-    this._scene.add(secondaryPlane);
-    this._scene.add(thirdPlane);
-    this._scene.add(fourthPlane);
-    // this._scene.add(plane);
     this._mixers = [];
     this._previousRAF = null;
 
@@ -1292,8 +939,8 @@ class ThirdPersonCameraDemo {
 
 let _APP = null;
 
-window.addEventListener("DOMContentLoaded", () => {
-  _APP = new ThirdPersonCameraDemo();
+window.addEventListener('DOMContentLoaded', () => {
+  _APP = new PortfolioWorld();
 });
 
 function _LerpOverFrames(frames, t) {
@@ -1310,7 +957,7 @@ function _LerpOverFrames(frames, t) {
 function _TestLerp(t1, t2) {
   const v1 = _LerpOverFrames(100, t1);
   const v2 = _LerpOverFrames(50, t2);
-  console.log(v1.x + " | " + v2.x);
+  console.log(v1.x + ' | ' + v2.x);
 }
 
 _TestLerp(0.01, 0.01);
