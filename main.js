@@ -79,7 +79,9 @@ class BasicCharacterController {
       this._params.scene.add(objectBox);
       return objectBox;
     });
+    this._collisionDirection = null;
     this._onaAnotherWindow = false;
+    this._wasInCollision = false;
     this._LoadModels();
 
     this._AddMouseClickListener();
@@ -418,6 +420,9 @@ class BasicCharacterController {
         _OnLoad('walkright', a);
       });
     });
+    setTimeout(() => {
+      sliderShow(this, ['./resources/images/instruction.png']);
+    }, 3000);
   }
 
   _AddMouseClickListener() {
@@ -534,9 +539,7 @@ class BasicCharacterController {
     velocity.add(frameDecceleration);
 
     const characterPosition = this._target.position;
-
     const boxSize = 4;
-
     const characterBBox = new THREE.Box3(
       new THREE.Vector3(
         characterPosition.x - boxSize / 2,
@@ -553,10 +556,40 @@ class BasicCharacterController {
     const collidesWithAnyFence = this._fence.some((fence) =>
       fence.intersectsBox(characterBBox),
     );
-    const collidesWithAnyObjects = this._objects.some(
-      (obj) => obj.intersectsBox(characterBBox),
-      // checkIntersection(obj, characterBBox),
+    const collidesWithAnyObjects = this._objects.some((obj) =>
+      obj.intersectsBox(characterBBox),
     );
+
+    // Add collision direction detection
+    if (collidesWithAnyFence || collidesWithAnyObjects) {
+      // Get character's forward direction
+      const forward = new THREE.Vector3(0, 0, 1);
+      forward.applyQuaternion(this._target.quaternion);
+      forward.normalize();
+
+      // Check collision objects
+      const collisionObjects = [...this._fence, ...this._objects];
+      for (const obj of collisionObjects) {
+        if (obj.intersectsBox(characterBBox)) {
+          // Get direction to collision object
+          const collisionDirection = new THREE.Vector3();
+          collisionDirection.subVectors(
+            obj.getCenter(new THREE.Vector3()),
+            characterBBox.getCenter(new THREE.Vector3()),
+          );
+          collisionDirection.normalize();
+
+          // Compare with character's forward direction using dot product
+          const dot = forward.dot(collisionDirection);
+          if (dot > 0) {
+            this._collisionDirection = 'front';
+          } else {
+            this._collisionDirection = 'back';
+          }
+          break; // Exit after first collision
+        }
+      }
+    }
 
     this._stateMachine.Update(timeInSeconds, this._input);
 
@@ -577,39 +610,35 @@ class BasicCharacterController {
       this._updateSound(this._stateMachine._currentState.Name);
     }
 
-    console.log('🚀 ~ BasicCharacterController ~ Update ~ velocity:', velocity);
-
     if (collidesWithAnyFence || collidesWithAnyObjects) {
-      // No movement input check
       if (
         !this._input._keys.backward &&
         !this._input._keys.forward &&
         !this._input._keys.right &&
         !this._input._keys.left
       ) {
-        // Stop all movement
         velocity.x = 0;
         velocity.y = 0;
         velocity.z = 0;
       } else {
-        // Handle forward/backward movement during collision
-        if (velocity.z > 0 && this._input._keys.forward) {
-          // Object is in front, prevent forward movement
-          velocity.z = 0;
-        } else if (velocity.z < 0 && this._input._keys.backward) {
-          // Object is behind, prevent backward movement
-          velocity.z = 0;
-        } else {
-          // Allow movement away from collision
-          if (this._input._keys.forward) {
-            velocity.z += acc.z * timeInSeconds;
-          }
-          if (this._input._keys.backward) {
-            velocity.z -= acc.z * timeInSeconds;
-          }
+        this._wasInCollision = true;
+
+        // Immediately reset velocity when colliding
+        velocity.z = 0;
+
+        // Only allow movement in direction away from collision
+        if (
+          this._collisionDirection === 'front' &&
+          this._input._keys.backward
+        ) {
+          velocity.z -= acc.z * timeInSeconds;
+        } else if (
+          this._collisionDirection === 'back' &&
+          this._input._keys.forward
+        ) {
+          velocity.z += acc.z * timeInSeconds;
         }
 
-        // Handle rotation during collision
         if (this._input._keys.left) {
           _A.set(0, 1, 0);
           _Q.setFromAxisAngle(
@@ -628,6 +657,12 @@ class BasicCharacterController {
         }
       }
     } else {
+      if (this._wasInCollision) {
+        velocity.z = 0;
+        this._wasInCollision = false;
+        this._collisionDirection = null;
+      }
+
       if (
         !this._input._keys.left &&
         !this._input._keys.right &&
@@ -636,6 +671,7 @@ class BasicCharacterController {
       ) {
         velocity.x = 0;
       }
+
       if (this._input._keys.forward) {
         velocity.z += acc.z * timeInSeconds;
       }

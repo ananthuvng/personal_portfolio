@@ -1,5 +1,6 @@
-export function sliderShow(windowStateManager, images) {
+export function sliderShow(windowStateManager, images, isAutoClose = false) {
   const popup = document.createElement('div');
+  let autoCloseTimer;
   popup.id = 'about-popup';
   Object.assign(popup.style, {
     position: 'fixed',
@@ -205,6 +206,10 @@ export function sliderShow(windowStateManager, images) {
     if (windowStateManager) {
       windowStateManager._onaAnotherWindow = false;
     }
+
+    if (autoCloseTimer) {
+      clearTimeout(autoCloseTimer);
+    }
     setTimeout(() => {
       document.body.removeChild(popup);
     }, 300);
@@ -223,5 +228,11 @@ export function sliderShow(windowStateManager, images) {
   document.body.appendChild(popup);
   setTimeout(() => {
     popup.style.opacity = '1';
+
+    if (isAutoClose) {
+      setTimeout(() => {
+        closePopup();
+      }, 5000);
+    }
   }, 10);
 }
