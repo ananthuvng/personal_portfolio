@@ -448,8 +448,8 @@ class BasicCharacterController {
         isDescendantOf(intersect.object, this._about),
       );
 
-      const isGamingClicked = intersects.some(
-        (intersect) => intersect.object === this._gaming,
+      const isGamingClicked = intersects.some((intersect) =>
+        isDescendantOf(intersect.object, this._gaming),
       );
 
       const isExperienceClicked = intersects.some((intersect) =>
@@ -469,42 +469,33 @@ class BasicCharacterController {
       const isInstructionClicked = intersects.some((intersect) =>
         isDescendantOf(intersect.object, this._instruction),
       );
-
-      if (isTableClicked) {
-        this._onaAnotherWindow = true;
-        createModernDesktop(this);
-      }
-
-      if (isGamingClicked) {
-        this._onaAnotherWindow = true;
-        startSpaceShooterGame(this);
-      }
-
       if (isAboutClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, ['./resources/images/about.png']);
-      }
-      if (isBlogClicked) {
+      } else if (isTableClicked) {
+        this._onaAnotherWindow = true;
+        createModernDesktop(this);
+      } else if (isGamingClicked) {
+        this._onaAnotherWindow = true;
+        startSpaceShooterGame(this);
+      } else if (isBlogClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, ['./resources/images/blogs.png']);
-      }
-      if (isExperienceClicked) {
+      } else if (isExperienceClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, [
           './resources/images/experince.png',
           './resources/images/ellucian.png',
           './resources/images/cisco.png',
         ]);
-      }
-      if (isProjectClicked) {
+      } else if (isProjectClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, [
           './resources/images/projects.png',
           './resources/images/souls.png',
           './resources/images/sanchari.png',
         ]);
-      }
-      if (isInstructionClicked) {
+      } else if (isInstructionClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, ['./resources/images/instruction.png']);
       }
@@ -543,6 +534,7 @@ class BasicCharacterController {
     velocity.add(frameDecceleration);
 
     const characterPosition = this._target.position;
+
     const boxSize = 4;
 
     const characterBBox = new THREE.Box3(
@@ -585,17 +577,55 @@ class BasicCharacterController {
       this._updateSound(this._stateMachine._currentState.Name);
     }
 
+    console.log('🚀 ~ BasicCharacterController ~ Update ~ velocity:', velocity);
+
     if (collidesWithAnyFence || collidesWithAnyObjects) {
+      // No movement input check
       if (
         !this._input._keys.backward &&
+        !this._input._keys.forward &&
         !this._input._keys.right &&
         !this._input._keys.left
       ) {
+        // Stop all movement
         velocity.x = 0;
         velocity.y = 0;
         velocity.z = 0;
       } else {
-        velocity.z -= acc.z * timeInSeconds;
+        // Handle forward/backward movement during collision
+        if (velocity.z > 0 && this._input._keys.forward) {
+          // Object is in front, prevent forward movement
+          velocity.z = 0;
+        } else if (velocity.z < 0 && this._input._keys.backward) {
+          // Object is behind, prevent backward movement
+          velocity.z = 0;
+        } else {
+          // Allow movement away from collision
+          if (this._input._keys.forward) {
+            velocity.z += acc.z * timeInSeconds;
+          }
+          if (this._input._keys.backward) {
+            velocity.z -= acc.z * timeInSeconds;
+          }
+        }
+
+        // Handle rotation during collision
+        if (this._input._keys.left) {
+          _A.set(0, 1, 0);
+          _Q.setFromAxisAngle(
+            _A,
+            4.0 * Math.PI * timeInSeconds * this._acceleration.y,
+          );
+          _R.multiply(_Q);
+        }
+        if (this._input._keys.right) {
+          _A.set(0, 1, 0);
+          _Q.setFromAxisAngle(
+            _A,
+            4.0 * -Math.PI * timeInSeconds * this._acceleration.y,
+          );
+          _R.multiply(_Q);
+        }
       }
     } else {
       if (
@@ -606,7 +636,6 @@ class BasicCharacterController {
       ) {
         velocity.x = 0;
       }
-
       if (this._input._keys.forward) {
         velocity.z += acc.z * timeInSeconds;
       }

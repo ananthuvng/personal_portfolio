@@ -423,39 +423,38 @@ export function createModernDesktop(windowStateManager) {
   // Define icons
   const icons = [
     {
-      iconSrc: './resources/pdficon.png',
+      iconSrc: './resources/images/pdficon.png',
       label: 'Resume',
-      onClick: () => window.open('./resources/resume.pdf', '_blank'),
+      onClick: () => window.open('./resources/images/resume.pdf', '_blank'),
       desktop: true,
       dock: true,
     },
     {
-      iconSrc: './resources/github.png',
+      iconSrc: './resources/images/github.png',
       label: 'GitHub',
-      onClick: () => window.open('https://github.com/yourusername', '_blank'),
+      onClick: () => window.open('https://github.com/ananthuvng', '_blank'),
       desktop: true,
       dock: true,
     },
     {
-      iconSrc: './resources/linkedin.png',
+      iconSrc: './resources/images/linkedin.png',
       label: 'LinkedIn',
       onClick: () =>
-        window.open('https://linkedin.com/in/yourusername', '_blank'),
+        window.open('https://linkedin.com/in/ananthuvng', '_blank'),
       desktop: true,
       dock: true,
     },
     {
-      iconSrc: './resources/instagram.png',
+      iconSrc: './resources/images/instagram.png',
       label: 'Instagram',
-      onClick: () =>
-        window.open('https://instagram.com/yourusername', '_blank'),
+      onClick: () => window.open('https://instagram.com/ananthuvng', '_blank'),
       desktop: true,
       dock: true,
     },
     {
-      iconSrc: './resources/email.png',
+      iconSrc: './resources/images/email.png',
       label: 'Contact',
-      onClick: () => window.open('mailto:your.email@example.com'),
+      onClick: () => window.open('mailto:ananthuvngmkd@gmail.com'),
       desktop: true,
       dock: true,
     },
@@ -482,8 +481,8 @@ export function createModernDesktop(windowStateManager) {
       taskbar.addDockIcon(iconData.iconSrc, iconData.label, iconData.onClick);
     });
 
-  taskbar.addUtilityIcon('./resources/wifi.png', 'WiFi', () => {});
-  taskbar.addUtilityIcon('./resources/battery.png', 'Battery', () => {});
+  taskbar.addUtilityIcon('./resources/images/wifi.png', 'WiFi', () => {});
+  taskbar.addUtilityIcon('./resources/images/battery.png', 'Battery', () => {});
 
   // Add close button
   const closeButton = new CloseButton(

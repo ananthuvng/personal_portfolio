@@ -232,7 +232,7 @@ export const objectsDefinitions = [
     y: 0,
     z: -5,
     angle: 0,
-    color: 0x00ff00,
+    color: 0xeb6b34,
   },
   {
     width: 10,
@@ -242,7 +242,7 @@ export const objectsDefinitions = [
     y: 0,
     z: 58,
     angle: 0,
-    color: 0x00ff00,
+    color: 0xeb6b34,
   },
   {
     width: 10,
@@ -252,7 +252,7 @@ export const objectsDefinitions = [
     y: 0,
     z: 58,
     angle: 0,
-    color: 0x00ff00,
+    color: 0xeb6b34,
   },
   {
     width: 8,
@@ -262,7 +262,7 @@ export const objectsDefinitions = [
     y: 0,
     z: 80,
     angle: 0,
-    color: 0x00ff00,
+    color: 0xeb6b34,
   },
   {
     width: 6,
@@ -285,14 +285,14 @@ export const objectsDefinitions = [
     color: 0x02ff80,
   },
   {
-    width: 9,
-    length: 12,
+    width: 12,
+    length: 10,
     height: 9,
     x: -45,
     y: 0,
     z: -76,
-    angle: Math.PI / 2,
-    color: 0x00ff00,
+    angle: 0,
+    color: 0xeb6b34,
   },
   {
     width: 10,
@@ -312,7 +312,7 @@ export const objectsDefinitions = [
     y: 0,
     z: -52,
     angle: 0,
-    color: 0x02ff80,
+    color: 0xeb6b34,
   },
   {
     width: 8,
