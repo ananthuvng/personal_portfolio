@@ -35,7 +35,6 @@ export function showCredits(
     overflow: 'auto',
   });
 
-  // Create header
   const header = `
       <div style="
         font-size: 24px;
@@ -47,7 +46,6 @@ export function showCredits(
       </div>
     `;
 
-  // Create credits content
   const content = credits
     .map(
       (credit) => `
@@ -71,9 +69,6 @@ export function showCredits(
 
   creditsContainer.innerHTML = header + content;
 
-  // [Rest of the code remains unchanged...]
-
-  // Create close button
   const closeButton = document.createElement('div');
   Object.assign(closeButton.style, {
     position: 'absolute',

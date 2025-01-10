@@ -27,41 +27,32 @@ export function createBox3Debug(width, length, height, x, y, z, angle, color) {
   );
 
   const max = new THREE.Vector3(
-    position.x + width / 2, // max.x
-    position.y + height / 2, // max.y
-    position.z + length / 2, // max.z
+    position.x + width / 2,
+    position.y + height / 2,
+    position.z + length / 2,
   );
 
-  // Create a rotation matrix around the Y-axis (or any axis you choose)
-  const rotationMatrix = new THREE.Matrix4().makeRotationY(angle); // rotation around Y-axis
+  const rotationMatrix = new THREE.Matrix4().makeRotationY(angle);
 
-  // Apply the rotation to both min and max vectors
   min.applyMatrix4(rotationMatrix);
   max.applyMatrix4(rotationMatrix);
 
-  // Create the geometry for the fence (BoxGeometry)
   const geometry = new THREE.BoxGeometry(width, height, length);
 
-  // Create the material with the given color
   const material = new THREE.MeshBasicMaterial({ color: color });
 
-  // Create the mesh for the fence
   const fenceMesh = new THREE.Mesh(geometry, material);
 
-  // Position the fence mesh
   fenceMesh.position.set(position.x, position.y, position.z);
 
-  // Apply the rotation to the mesh (use the angle passed in)
   fenceMesh.rotation.y = angle;
 
-  // Return the mesh (not Box3 since you want to render it)
   return fenceMesh;
 }
 
-// Function to check intersection with another Box3
 export function checkIntersection(mesh, otherBox) {
-  const boundingBox = new THREE.Box3().setFromObject(mesh); // Get bounding box of the mesh
-  return boundingBox.intersectsBox(otherBox); // Check if bounding box intersects with another Box3
+  const boundingBox = new THREE.Box3().setFromObject(mesh);
+  return boundingBox.intersectsBox(otherBox);
 }
 
 export function createOptimizedCollider(
@@ -76,13 +67,11 @@ export function createOptimizedCollider(
 ) {
   const position = new THREE.Vector3(x, y, z);
 
-  // Create an invisible Box3 for efficient collision detection
   const box3 = new THREE.Box3(
     new THREE.Vector3(-width / 2, -height / 2, -length / 2),
     new THREE.Vector3(width / 2, height / 2, length / 2),
   );
 
-  // If in debug mode, create a visible mesh
   let debugMesh = null;
   if (isDebug) {
     const geometry = new THREE.BoxGeometry(width, height, length);
@@ -97,7 +86,6 @@ export function createOptimizedCollider(
     debugMesh.rotation.y = angle;
   }
 
-  // Transform the Box3
   const rotationMatrix = new THREE.Matrix4()
     .makeRotationY(angle)
     .setPosition(position);
@@ -106,14 +94,12 @@ export function createOptimizedCollider(
   return {
     box3,
     debugMesh,
-    // Method to check collision
     checkCollision: function (otherBox3) {
       return box3.intersectsBox(otherBox3);
     },
   };
 }
 
-// Helper function to calculate box dimensions
 export function getBox3Dimensions(box3) {
   const size = {
     width: Math.abs(box3.max.x - box3.min.x),
@@ -123,7 +109,6 @@ export function getBox3Dimensions(box3) {
   return size;
 }
 
-// Helper function to calculate box center
 export function getBox3Center(box3) {
   return new THREE.Vector3(
     (box3.min.x + box3.max.x) / 2,
@@ -166,21 +151,18 @@ export function createPlane(
   position = new THREE.Vector3(0, -5, 0),
 ) {
   const plane = new THREE.Mesh(
-    new THREE.BoxGeometry(width, height, depth), // width, height, depth
+    new THREE.BoxGeometry(width, height, depth),
     new THREE.MeshStandardMaterial({
-      map: texture, // Texture
-      color: color, // Color
+      map: texture,
+      color: color,
     }),
   );
 
-  // Apply rotation (around the Y-axis)
   plane.rotation.y = rotationY;
 
-  // Set common properties
   plane.castShadow = false;
   plane.receiveShadow = true;
 
-  // Position the plane
   plane.position.set(position.x, position.y, position.z);
 
   return plane;
@@ -196,81 +178,4 @@ export function setupAudio() {
     this._walkingSound.setLoop(true);
     this._walkingSound.setVolume(0.5);
   });
-}
-
-class CloseButton {
-  constructor(container, cleanup, windowStateManager) {
-    this.element = document.createElement('div');
-    Object.assign(this.element.style, {
-      position: 'absolute',
-      top: '20px',
-      right: '20px',
-      width: '40px',
-      height: '40px',
-      borderRadius: '50%',
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      backdropFilter: 'blur(5px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      zIndex: '1000',
-    });
-
-    const closeIcon = document.createElement('div');
-    Object.assign(closeIcon.style, {
-      position: 'relative',
-      width: '20px',
-      height: '20px',
-    });
-
-    const line1 = document.createElement('div');
-    const line2 = document.createElement('div');
-    const lineStyles = {
-      position: 'absolute',
-      width: '100%',
-      height: '2px',
-      backgroundColor: 'white',
-      top: '50%',
-      left: '0',
-      transform: 'translateY(-50%)',
-      transition: 'transform 0.3s ease',
-    };
-
-    Object.assign(line1.style, { ...lineStyles, transform: 'rotate(45deg)' });
-    Object.assign(line2.style, { ...lineStyles, transform: 'rotate(-45deg)' });
-
-    closeIcon.appendChild(line1);
-    closeIcon.appendChild(line2);
-    this.element.appendChild(closeIcon);
-
-    let isClosing = false;
-
-    this.element.addEventListener('mouseenter', () => {
-      this.element.style.backgroundColor = 'rgba(38, 255, 253, 0.8)';
-      this.element.style.transform = 'rotate(90deg)';
-    });
-
-    this.element.addEventListener('mouseleave', () => {
-      this.element.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-      this.element.style.transform = 'rotate(0deg)';
-    });
-
-    this.element.addEventListener('click', () => {
-      if (isClosing) return;
-      isClosing = true;
-
-      if (windowStateManager) {
-        windowStateManager._onaAnotherWindow = false;
-      }
-      container.style.transform = 'scale(0.8)';
-      container.style.opacity = '0';
-
-      setTimeout(() => {
-        cleanup();
-        document.body.removeChild(container);
-      }, 300);
-    });
-  }
 }

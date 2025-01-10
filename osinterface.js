@@ -1,4 +1,3 @@
-// Modified DraggableUtil with click detection
 const DraggableUtil = {
   makeDraggable(element, container, onClick) {
     let isDragging = false;
@@ -8,7 +7,7 @@ const DraggableUtil = {
     let startY;
     let initialClickX;
     let initialClickY;
-    const dragThreshold = 5; // Pixels to move before considered dragging
+    const dragThreshold = 5;
 
     const dragStart = (e) => {
       if (e.target !== element && e.target.parentElement !== element) return;
@@ -29,7 +28,6 @@ const DraggableUtil = {
       const deltaX = Math.abs(e.clientX - initialClickX);
       const deltaY = Math.abs(e.clientY - initialClickY);
 
-      // Only start dragging if moved beyond threshold
       if (!isDragging && (deltaX > dragThreshold || deltaY > dragThreshold)) {
         isDragging = true;
         element.style.zIndex = '1000';
@@ -44,7 +42,6 @@ const DraggableUtil = {
       const bounds = container.getBoundingClientRect();
       const elementBounds = element.getBoundingClientRect();
 
-      // Constrain to container bounds
       currentX = Math.max(
         0,
         Math.min(currentX, bounds.width - elementBounds.width),
@@ -86,12 +83,8 @@ const DraggableUtil = {
   },
 };
 
-// ... [Previous DesktopIcon class remains the same] ...
-
-// New Combined Taskbar class
 class ModernTaskbar {
   constructor() {
-    // Main taskbar container
     this.element = document.createElement('div');
     Object.assign(this.element.style, {
       position: 'absolute',
@@ -109,7 +102,6 @@ class ModernTaskbar {
       zIndex: '100',
     });
 
-    // Left section for system icons
     this.leftSection = document.createElement('div');
     Object.assign(this.leftSection.style, {
       display: 'flex',
@@ -117,7 +109,6 @@ class ModernTaskbar {
       gap: '10px',
     });
 
-    // Center section for dock
     this.centerSection = document.createElement('div');
     Object.assign(this.centerSection.style, {
       position: 'absolute',
@@ -133,7 +124,6 @@ class ModernTaskbar {
       marginBottom: '10px',
     });
 
-    // Right section for utilities
     this.rightSection = document.createElement('div');
     Object.assign(this.rightSection.style, {
       display: 'flex',
@@ -147,7 +137,6 @@ class ModernTaskbar {
     this.element.appendChild(this.centerSection);
     this.element.appendChild(this.rightSection);
 
-    // Add bottom margin to desktop area
     const desktopArea = document.querySelector('#desktop-area');
     if (desktopArea) {
       desktopArea.style.marginBottom = '50px';
@@ -181,7 +170,7 @@ class ModernTaskbar {
       borderRadius: '8px',
       cursor: 'pointer',
       transition: 'all 0.2s ease',
-      marginRight: isDockIcon ? '0' : '5px', // Add margin for right side icons
+      marginRight: isDockIcon ? '0' : '5px',
     });
 
     const icon = document.createElement('img');
@@ -192,10 +181,8 @@ class ModernTaskbar {
     });
     icon.src = iconSrc;
 
-    // Also adjust the right section's padding in the taskbar constructor
-    this.rightSection.style.paddingRight = '10px'; // Add padding to prevent overflow
+    this.rightSection.style.paddingRight = '10px';
 
-    // Hover effects remain the same
     iconWrapper.addEventListener('mouseenter', () => {
       iconWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
       if (isDockIcon) {
@@ -314,12 +301,10 @@ class DesktopIcon {
       padding: '8px',
     });
 
-    // Set initial position
     this.element.dataset.initialX = options.x || '20';
     this.element.dataset.initialY = options.y || '20';
     this.element.style.transform = `translate(${this.element.dataset.initialX}px, ${this.element.dataset.initialY}px)`;
 
-    // Icon container
     this.iconContainer = document.createElement('div');
     Object.assign(this.iconContainer.style, {
       width: '50px',
@@ -333,7 +318,6 @@ class DesktopIcon {
       pointerEvents: 'none',
     });
 
-    // Icon image
     this.icon = document.createElement('img');
     Object.assign(this.icon.style, {
       width: '30px',
@@ -343,7 +327,6 @@ class DesktopIcon {
     this.icon.src = options.iconSrc || '';
     this.icon.draggable = false;
 
-    // Label
     this.label = document.createElement('span');
     Object.assign(this.label.style, {
       color: 'white',
@@ -356,7 +339,6 @@ class DesktopIcon {
     });
     this.label.textContent = options.label || '';
 
-    // Hover effects
     this.element.addEventListener('mouseenter', () => {
       if (!this.element.dataset.isDragging) {
         this.element.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
@@ -384,13 +366,11 @@ class DesktopIcon {
 }
 
 export function createModernDesktop(windowStateManager) {
-  // Remove any existing instances
   const existingDesktop = document.getElementById('modern-desktop');
   if (existingDesktop) {
     document.body.removeChild(existingDesktop);
   }
 
-  // Create main container
   const container = document.createElement('div');
   container.id = 'modern-desktop';
   Object.assign(container.style, {
@@ -407,20 +387,17 @@ export function createModernDesktop(windowStateManager) {
     transition: 'transform 0.3s ease, opacity 0.3s ease',
   });
 
-  // Create desktop area
   const desktopArea = document.createElement('div');
   desktopArea.id = 'desktop-area';
   Object.assign(desktopArea.style, {
     position: 'relative',
     width: '100%',
-    height: 'calc(100% - 50px)', // Account for taskbar
+    height: 'calc(100% - 50px)',
     padding: '20px',
   });
 
-  // Create taskbar
   const taskbar = new ModernTaskbar();
 
-  // Define icons
   const icons = [
     {
       iconSrc: './resources/images/pdficon.png',
@@ -460,7 +437,6 @@ export function createModernDesktop(windowStateManager) {
     },
   ];
 
-  // Create desktop icons
   const cleanupFunctions = icons
     .filter((icon) => icon.desktop)
     .map((iconData, index) => {
@@ -474,7 +450,6 @@ export function createModernDesktop(windowStateManager) {
       return icon.mount(desktopArea, iconData.onClick);
     });
 
-  // Add icons to taskbar
   icons
     .filter((icon) => icon.dock)
     .forEach((iconData) => {
@@ -484,7 +459,6 @@ export function createModernDesktop(windowStateManager) {
   taskbar.addUtilityIcon('./resources/images/wifi.png', 'WiFi', () => {});
   taskbar.addUtilityIcon('./resources/images/battery.png', 'Battery', () => {});
 
-  // Add close button
   const closeButton = new CloseButton(
     container,
     () => {
@@ -493,13 +467,11 @@ export function createModernDesktop(windowStateManager) {
     windowStateManager,
   );
 
-  // Mount components
   container.appendChild(desktopArea);
   container.appendChild(taskbar.element);
   container.appendChild(closeButton.element);
   document.body.appendChild(container);
 
-  // Trigger entrance animation
   requestAnimationFrame(() => {
     container.style.opacity = '1';
     container.style.transform = 'scale(1)';

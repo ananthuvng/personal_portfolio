@@ -1,10 +1,8 @@
 export function startSpaceShooterGame(windowStateManager) {
-  // Prevent multiple game instances
   if (document.getElementById('game-container')) {
     return;
   }
 
-  // Create the game container
   const gameContainer = document.createElement('div');
   gameContainer.id = 'game-container';
   gameContainer.style.position = 'fixed';
@@ -20,7 +18,6 @@ export function startSpaceShooterGame(windowStateManager) {
   gameContainer.style.opacity = '0';
   gameContainer.style.transition = 'opacity 0.3s ease-in-out';
 
-  // Create instructions panel
   const instructions = document.createElement('div');
   instructions.style.position = 'fixed';
   instructions.style.top = '20px';
@@ -39,15 +36,13 @@ export function startSpaceShooterGame(windowStateManager) {
   `;
   gameContainer.appendChild(instructions);
 
-  // Create the canvas for the game
   const canvas = document.createElement('canvas');
   canvas.id = 'gameCanvas';
   const ctx = canvas.getContext('2d');
-  canvas.width = Math.min(window.innerWidth * 0.8, 800); // Max width of 800
-  canvas.height = Math.min(window.innerHeight * 0.8, 600); // Max height of 600
+  canvas.width = Math.min(window.innerWidth * 0.8, 800);
+  canvas.height = Math.min(window.innerHeight * 0.8, 600);
   gameContainer.appendChild(canvas);
 
-  // Create the close button with new styling
   const closeBtn = document.createElement('div');
   Object.assign(closeBtn.style, {
     position: 'absolute',
@@ -68,7 +63,6 @@ export function startSpaceShooterGame(windowStateManager) {
     zIndex: '1000',
   });
 
-  // Create the X icon using two lines
   const closeIcon = document.createElement('div');
   Object.assign(closeIcon.style, {
     position: 'relative',
@@ -106,18 +100,14 @@ export function startSpaceShooterGame(windowStateManager) {
     closeBtn.style.transform = 'rotate(0deg)';
   });
 
-  // Close button functionality
   closeBtn.addEventListener('click', closeGame);
 
   function closeGame() {
     gameOver = true;
-
-    // Remove all event listeners
     document.removeEventListener('keydown', movePlayer);
     document.removeEventListener('keyup', stopPlayerMovement);
     document.removeEventListener('keydown', handleShoot);
 
-    // Cancel animation and intervals
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
     }
@@ -125,12 +115,10 @@ export function startSpaceShooterGame(windowStateManager) {
       clearInterval(spawnIntervalId);
     }
 
-    // Fade out and remove game container
     gameContainer.style.opacity = '0';
     setTimeout(() => {
       document.body.removeChild(gameContainer);
 
-      // Update window state if a state manager is provided
       if (windowStateManager) {
         windowStateManager._onaAnotherWindow = false;
       }
@@ -205,15 +193,12 @@ export function startSpaceShooterGame(windowStateManager) {
     enemies.length = 0;
     scoreDisplay.innerText = 'Score: 0';
 
-    // Clear any existing event listeners
     document.removeEventListener('keydown', movePlayer);
     document.removeEventListener('keyup', stopPlayerMovement);
-    document.removeEventListener('keydown', handleShoot); // Remove right-click shoot listener
-
-    // Add event listeners for the new game
+    document.removeEventListener('keydown', handleShoot);
     document.addEventListener('keydown', movePlayer);
     document.addEventListener('keyup', stopPlayerMovement);
-    document.addEventListener('keydown', handleShoot); // Spacebar for shooting
+    document.addEventListener('keydown', handleShoot);
   }
 
   const stars = [];
@@ -243,14 +228,12 @@ export function startSpaceShooterGame(windowStateManager) {
 
   function drawStars() {
     stars.forEach((star) => {
-      ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.7})`; // Twinkle effect
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.7})`;
       ctx.beginPath();
       ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
       ctx.fill();
     });
   }
-
-  // Update the player's position based on user input
   function updatePlayer() {
     if (
       player.x + player.dx >= 0 &&
@@ -259,8 +242,6 @@ export function startSpaceShooterGame(windowStateManager) {
       player.x += player.dx;
     }
   }
-
-  // Draw the player's spaceship
   function drawPlayer() {
     ctx.drawImage(
       images.player,
@@ -271,7 +252,6 @@ export function startSpaceShooterGame(windowStateManager) {
     );
   }
 
-  // Handle keyboard input for moving the player
   function movePlayer(e) {
     if (e.key === 'ArrowLeft' || e.key === 'a') {
       player.dx = -player.speed;
@@ -291,10 +271,8 @@ export function startSpaceShooterGame(windowStateManager) {
     }
   }
 
-  // Improved bullet creation with cooldown
   function handleShoot(e) {
     if (e.key === ' ' || e.key === 'Spacebar') {
-      // Spacebar to shoot
       const currentTime = Date.now();
       if (currentTime - lastBulletTime > BULLET_COOLDOWN) {
         createBullet();
@@ -334,7 +312,6 @@ export function startSpaceShooterGame(windowStateManager) {
     });
   }
 
-  // Enemy object and functions
   function createEnemy() {
     const x = Math.random() * (canvas.width - 100);
     const enemy = {
@@ -352,13 +329,11 @@ export function startSpaceShooterGame(windowStateManager) {
       const enemy = enemies[i];
       enemy.y += enemy.speed;
 
-      // Remove enemy if it goes off screen
       if (enemy.y > canvas.height) {
         enemies.splice(i, 1);
         continue;
       }
 
-      // Check for collision with bullets
       for (let j = bullets.length - 1; j >= 0; j--) {
         const bullet = bullets[j];
         if (
@@ -374,8 +349,6 @@ export function startSpaceShooterGame(windowStateManager) {
           break;
         }
       }
-
-      // Check for collision with the player
       if (
         enemy.x < player.x + player.width &&
         enemy.x + enemy.width > player.x &&
@@ -393,9 +366,7 @@ export function startSpaceShooterGame(windowStateManager) {
     });
   }
 
-  // Game loop
   function gameLoop() {
-    // Clear the canvas with black background
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     updateStars();
@@ -427,34 +398,27 @@ export function startSpaceShooterGame(windowStateManager) {
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
-  // Start the game
   function startGame() {
-    // Reset and set up event listeners
     resetGame();
     createStars();
-    // Spawn enemies at intervals
     spawnIntervalId = setInterval(() => {
       if (!gameOver) {
         createEnemy();
       }
     }, enemySpawnRate);
 
-    // Start the game loop
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
-  // Close button functionality
   closeBtn.addEventListener('click', closeGame);
 
   function closeGame() {
     gameOver = true;
 
-    // Remove all event listeners
     document.removeEventListener('keydown', movePlayer);
     document.removeEventListener('keyup', stopPlayerMovement);
     document.removeEventListener('keydown', handleShoot);
 
-    // Cancel animation and intervals
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
     }
@@ -462,19 +426,16 @@ export function startSpaceShooterGame(windowStateManager) {
       clearInterval(spawnIntervalId);
     }
 
-    // Fade out and remove game container
     gameContainer.style.opacity = '0';
     setTimeout(() => {
       document.body.removeChild(gameContainer);
 
-      // Update window state if a state manager is provided
       if (windowStateManager) {
         windowStateManager._onaAnotherWindow = false;
       }
     }, 300);
   }
 
-  // Show the game container with a slight delay
   setTimeout(() => {
     gameContainer.style.opacity = '1';
   }, 10);

@@ -1,13 +1,11 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
-
 import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 import {
   _hideLoadingScreen,
   _showLoadingScreen,
   _updateLoadingProgress,
 } from './loading.js';
-import { sliderShow } from './about.js';
+import { sliderShow } from './showPages.js';
 import { startSpaceShooterGame } from './game.js';
 import {
   checkIntersection,
@@ -23,6 +21,7 @@ import { ThirdPersonCamera } from './thirdPersonCamera.js';
 import { createModernDesktop } from './osinterface.js';
 import { showCredits } from './modelsUsed.js';
 import { credits } from './credits.js';
+import { CharacterInput } from './characterInput.js';
 
 class BasicCharacterControllerProxy {
   constructor(animations) {
@@ -51,7 +50,7 @@ class BasicCharacterController {
     this._position = new THREE.Vector3();
     this._setupAudio();
     this._animations = {};
-    this._input = new BasicCharacterControllerInput();
+    this._input = new CharacterInput();
     this._stateMachine = new CharacterFSM(
       new BasicCharacterControllerProxy(this._animations),
     );
@@ -123,26 +122,19 @@ class BasicCharacterController {
   _LoadModels() {
     _showLoadingScreen();
     this._manager = new THREE.LoadingManager(
-      // onLoad callback
       () => {
-        console.log('All models loaded successfully');
         _hideLoadingScreen();
         if (this._stateMachine) {
           this._stateMachine.SetState('idle');
         }
       },
-      // onProgress callback
       (url, itemsLoaded, itemsTotal) => {
         const progress = Math.round((itemsLoaded / itemsTotal) * 100);
         _updateLoadingProgress(progress);
       },
-      // onError callback
-      (url, error) => {
-        console.error(`Error loading ${url}: ${error}`);
-      },
     );
 
-    const loader = new FBXLoader(this._manager); // Use the manager here
+    const loader = new FBXLoader(this._manager);
     loader.setPath('./resources/models/');
     loader.load('about.fbx', (fbx) => {
       fbx.traverse((c) => {
@@ -353,7 +345,6 @@ class BasicCharacterController {
         { z: -147, x: -34.5, a: Math.PI / 2 },
       ];
 
-      // Create clones and position them
       positions.forEach((pos) => {
         const fenceClone = fbx.clone();
 
@@ -384,7 +375,6 @@ class BasicCharacterController {
         }
       });
       fbx.position.set(-90, 0, 15);
-      //how can i stop the moving ananthu.fbx model when it touchers the VendingMachineFinal01 as normal objects
       fbx.rotation.y = Math.PI / 2;
 
       this._target = fbx;
@@ -444,26 +434,17 @@ class BasicCharacterController {
     );
   }
 
-  // Usage in click and hover methods
   _OnMouseClick(event) {
-    // ... existing raycaster setup code ...
     this._mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     this._mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    // Update the raycaster
     this._raycaster.setFromCamera(this._mouse, this._params.camera);
-
-    // Check for intersections
     const intersects = this._raycaster.intersectObjects(
       this._params.scene.children,
       true,
     );
 
     if (intersects.length > 0 && !this._onaAnotherWindow) {
-      console.log(
-        '🚀 ~ BasicCharacterController ~ _OnMouseClick ~ intersects:',
-        intersects,
-      );
       const isAboutClicked = intersects.some((intersect) =>
         isDescendantOf(intersect.object, this._about),
       );
@@ -581,18 +562,14 @@ class BasicCharacterController {
       obj.intersectsBox(characterBBox),
     );
 
-    // Add collision direction detection
     if (collidesWithAnyFence || collidesWithAnyObjects) {
-      // Get character's forward direction
       const forward = new THREE.Vector3(0, 0, 1);
       forward.applyQuaternion(this._target.quaternion);
       forward.normalize();
 
-      // Check collision objects
       const collisionObjects = [...this._fence, ...this._objects];
       for (const obj of collisionObjects) {
         if (obj.intersectsBox(characterBBox)) {
-          // Get direction to collision object
           const collisionDirection = new THREE.Vector3();
           collisionDirection.subVectors(
             obj.getCenter(new THREE.Vector3()),
@@ -600,14 +577,13 @@ class BasicCharacterController {
           );
           collisionDirection.normalize();
 
-          // Compare with character's forward direction using dot product
           const dot = forward.dot(collisionDirection);
           if (dot > 0) {
             this._collisionDirection = 'front';
           } else {
             this._collisionDirection = 'back';
           }
-          break; // Exit after first collision
+          break;
         }
       }
     }
@@ -643,11 +619,7 @@ class BasicCharacterController {
         velocity.z = 0;
       } else {
         this._wasInCollision = true;
-
-        // Immediately reset velocity when colliding
         velocity.z = 0;
-
-        // Only allow movement in direction away from collision
         if (
           this._collisionDirection === 'front' &&
           this._input._keys.backward
@@ -750,85 +722,6 @@ class BasicCharacterController {
   }
 }
 
-class BasicCharacterControllerInput {
-  constructor() {
-    this._Init();
-  }
-
-  _Init() {
-    this._keys = {
-      forward: false,
-      backward: false,
-      left: false,
-      right: false,
-      space: false,
-      shift: false,
-      moveLeft: false,
-      moveRight: false,
-    };
-    document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
-    document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
-  }
-
-  _onKeyDown(event) {
-    switch (event.keyCode) {
-      case 87: // w
-        this._keys.forward = true;
-        break;
-      case 65: // a
-        this._keys.left = true;
-        break;
-      case 83: // s
-        this._keys.backward = true;
-        break;
-      case 68: // d
-        this._keys.right = true;
-        break;
-      case 32: // SPACE
-        this._keys.space = true;
-        break;
-      case 16: // SHIFT
-        this._keys.shift = true;
-        break;
-      case 37: // LEFT ARROW
-        this._keys.moveLeft = true;
-        break;
-      case 39: // RIGHT ARROW
-        this._keys.moveRight = true;
-        break;
-    }
-  }
-
-  _onKeyUp(event) {
-    switch (event.keyCode) {
-      case 87: // w
-        this._keys.forward = false;
-        break;
-      case 65: // a
-        this._keys.left = false;
-        break;
-      case 83: // s
-        this._keys.backward = false;
-        break;
-      case 68: // d
-        this._keys.right = false;
-        break;
-      case 32: // SPACE
-        this._keys.space = false;
-        break;
-      case 16: // SHIFT
-        this._keys.shift = false;
-        break;
-      case 37: // LEFT ARROW
-        this._keys.moveLeft = false;
-        break;
-      case 39: // RIGHT ARROW
-        this._keys.moveRight = false;
-        break;
-    }
-  }
-}
-
 class PortfolioWorld {
   constructor() {
     this._Initialize();
@@ -866,7 +759,6 @@ class PortfolioWorld {
     this._camera.position.set(150, 10, 25);
 
     this._scene = new THREE.Scene();
-    // Main directional light (sun)
     const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
     mainLight.position.set(-50, 100, 50);
     mainLight.target.position.set(0, 0, 0);
@@ -881,17 +773,9 @@ class PortfolioWorld {
     mainLight.shadow.camera.top = 200;
     mainLight.shadow.camera.bottom = -200;
     this._scene.add(mainLight);
-
-    // Ambient light for overall scene brightness
     const ambientLight = new THREE.AmbientLight(0x404040, 0.1);
     this._scene.add(ambientLight);
 
-    // // Fill light to soften shadows
-    // const fillLight = new THREE.DirectionalLight(0xffffff, 0.1);
-    // fillLight.position.set(100, 50, -100);
-    // this._scene.add(fillLight);
-
-    // Back light for hair detail
     const backLight = new THREE.DirectionalLight(0xffffff, 0.1);
     backLight.position.set(0, 50, -100);
     this._scene.add(backLight);

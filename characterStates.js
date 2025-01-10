@@ -1,4 +1,3 @@
-// characterStates.js
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
 
 export class State {
@@ -274,7 +273,7 @@ export class WalkLeftState extends State {
 
   Update(timeElapsed, input) {
     if (!input._keys.moveLeft) {
-      this._parent.SetState('idle'); // Transition to idle if no left movement
+      this._parent.SetState('idle');
     }
   }
 }

@@ -63,3 +63,12 @@ export const credits = [
     licenseName: 'Creative Commons Attribution',
   },
 ];
+
+const images = [
+  `<a href="https://storyset.com/technology">
+    Technology illustrations by Storyset
+  </a>`,
+  `<a href="https://storyset.com/internet">
+    Internet illustrations by Storyset
+  </a>`,
+];
