@@ -20,6 +20,25 @@ export function startSpaceShooterGame(windowStateManager) {
   gameContainer.style.opacity = '0';
   gameContainer.style.transition = 'opacity 0.3s ease-in-out';
 
+  // Create instructions panel
+  const instructions = document.createElement('div');
+  instructions.style.position = 'fixed';
+  instructions.style.top = '20px';
+  instructions.style.left = '50%';
+  instructions.style.transform = 'translateX(-50%)';
+  instructions.style.color = 'white';
+  instructions.style.fontSize = '16px';
+  instructions.style.textAlign = 'center';
+  instructions.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+  instructions.style.padding = '10px 20px';
+  instructions.style.borderRadius = '8px';
+  instructions.style.fontFamily = 'Arial, sans-serif';
+  instructions.innerHTML = `
+    <div style="margin-bottom: 5px; font-size: 18px; color: #26fffd;">How to Play</div>
+    <div>Move: ← → or A/D keys | Shoot: Spacebar</div>
+  `;
+  gameContainer.appendChild(instructions);
+
   // Create the canvas for the game
   const canvas = document.createElement('canvas');
   canvas.id = 'gameCanvas';
@@ -28,28 +47,95 @@ export function startSpaceShooterGame(windowStateManager) {
   canvas.height = Math.min(window.innerHeight * 0.8, 600); // Max height of 600
   gameContainer.appendChild(canvas);
 
-  // Create the close button
+  // Create the close button with new styling
   const closeBtn = document.createElement('div');
-  closeBtn.innerHTML = '✕';
-  closeBtn.id = 'close-btn';
-  closeBtn.style.position = 'absolute';
-  closeBtn.style.top = '10px';
-  closeBtn.style.right = '10px';
-  closeBtn.style.color = 'white';
-  closeBtn.style.fontSize = '28px';
-  closeBtn.style.cursor = 'pointer';
-  closeBtn.style.padding = '10px';
-  closeBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-  closeBtn.style.borderRadius = '50%';
-  closeBtn.style.transition = 'background-color 0.3s, transform 0.3s';
+  Object.assign(closeBtn.style, {
+    position: 'absolute',
+    top: '2%',
+    right: '2%',
+    width: '3vw',
+    height: '3vw',
+    minWidth: '30px',
+    minHeight: '30px',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(5px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    zIndex: '1000',
+  });
+
+  // Create the X icon using two lines
+  const closeIcon = document.createElement('div');
+  Object.assign(closeIcon.style, {
+    position: 'relative',
+    width: '50%',
+    height: '50%',
+  });
+
+  const line1 = document.createElement('div');
+  const line2 = document.createElement('div');
+  const lineStyles = {
+    position: 'absolute',
+    width: '100%',
+    height: '2px',
+    backgroundColor: 'white',
+    top: '50%',
+    left: '0',
+    transform: 'translateY(-50%)',
+    transition: 'transform 0.3s ease',
+  };
+
+  Object.assign(line1.style, { ...lineStyles, transform: 'rotate(45deg)' });
+  Object.assign(line2.style, { ...lineStyles, transform: 'rotate(-45deg)' });
+
+  closeIcon.appendChild(line1);
+  closeIcon.appendChild(line2);
+  closeBtn.appendChild(closeIcon);
+
   closeBtn.addEventListener('mouseenter', () => {
-    closeBtn.style.backgroundColor = 'rgba(38, 255, 253, .5)';
-    closeBtn.style.transform = 'scale(1.1)';
+    closeBtn.style.backgroundColor = 'rgba(38, 255, 253, 0.8)';
+    closeBtn.style.transform = 'rotate(90deg)';
   });
+
   closeBtn.addEventListener('mouseleave', () => {
-    closeBtn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-    closeBtn.style.transform = 'scale(1)';
+    closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    closeBtn.style.transform = 'rotate(0deg)';
   });
+
+  // Close button functionality
+  closeBtn.addEventListener('click', closeGame);
+
+  function closeGame() {
+    gameOver = true;
+
+    // Remove all event listeners
+    document.removeEventListener('keydown', movePlayer);
+    document.removeEventListener('keyup', stopPlayerMovement);
+    document.removeEventListener('keydown', handleShoot);
+
+    // Cancel animation and intervals
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+    }
+    if (spawnIntervalId) {
+      clearInterval(spawnIntervalId);
+    }
+
+    // Fade out and remove game container
+    gameContainer.style.opacity = '0';
+    setTimeout(() => {
+      document.body.removeChild(gameContainer);
+
+      // Update window state if a state manager is provided
+      if (windowStateManager) {
+        windowStateManager._onaAnotherWindow = false;
+      }
+    }, 300);
+  }
 
   const scoreDisplay = document.createElement('div');
   scoreDisplay.className = 'score';
@@ -128,6 +214,40 @@ export function startSpaceShooterGame(windowStateManager) {
     document.addEventListener('keydown', movePlayer);
     document.addEventListener('keyup', stopPlayerMovement);
     document.addEventListener('keydown', handleShoot); // Spacebar for shooting
+  }
+
+  const stars = [];
+  const NUM_STARS = 100;
+  const STAR_SPEED = 1;
+
+  function createStars() {
+    for (let i = 0; i < NUM_STARS; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2,
+        speed: Math.random() * STAR_SPEED + 0.5,
+      });
+    }
+  }
+
+  function updateStars() {
+    stars.forEach((star) => {
+      star.y += star.speed;
+      if (star.y > canvas.height) {
+        star.y = 0;
+        star.x = Math.random() * canvas.width;
+      }
+    });
+  }
+
+  function drawStars() {
+    stars.forEach((star) => {
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.7})`; // Twinkle effect
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
   }
 
   // Update the player's position based on user input
@@ -220,8 +340,8 @@ export function startSpaceShooterGame(windowStateManager) {
     const enemy = {
       x: x,
       y: -100,
-      width: 70,
-      height: 70,
+      width: 50,
+      height: 50,
       speed: enemySpeed,
     };
     enemies.push(enemy);
@@ -278,7 +398,8 @@ export function startSpaceShooterGame(windowStateManager) {
     // Clear the canvas with black background
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    updateStars();
+    drawStars();
     if (gameOver) {
       cancelAnimationFrame(animationFrameId);
       clearInterval(spawnIntervalId);
@@ -310,7 +431,7 @@ export function startSpaceShooterGame(windowStateManager) {
   function startGame() {
     // Reset and set up event listeners
     resetGame();
-
+    createStars();
     // Spawn enemies at intervals
     spawnIntervalId = setInterval(() => {
       if (!gameOver) {

@@ -21,6 +21,8 @@ import { fenceDefinitions, objectsDefinitions } from './const.js';
 import { CharacterFSM } from './characterFSM.js';
 import { ThirdPersonCamera } from './thirdPersonCamera.js';
 import { createModernDesktop } from './osinterface.js';
+import { showCredits } from './modelsUsed.js';
+import { credits } from './credits.js';
 
 class BasicCharacterControllerProxy {
   constructor(animations) {
@@ -263,6 +265,15 @@ class BasicCharacterController {
         'Bar_completo2ARCADE_Bar_completo2Mat_Arcade_SI_0',
       );
 
+      this._credits = findChildByName(
+        fbx,
+        'Bar_completo2base_del_tacho_Bar_completo2Atlas2_0003',
+      );
+      this._push = findChildByName(
+        fbx,
+        'Bar_completo2base_del_tacho_Bar_completo2Atlas2_000',
+      );
+
       fbx.scale.setScalar(0.4);
       fbx.position.set(-55, -2, 3);
       fbx.rotation.y = -Math.PI / 2;
@@ -274,7 +285,7 @@ class BasicCharacterController {
       });
 
       fbx.scale.setScalar(0.048);
-      fbx.position.set(-17, 0, -155);
+      fbx.position.set(-17, -4, -155);
       this._params.scene.add(fbx);
     });
     loader.load('scififence.fbx', (fbx) => {
@@ -449,12 +460,19 @@ class BasicCharacterController {
     );
 
     if (intersects.length > 0 && !this._onaAnotherWindow) {
+      console.log(
+        '🚀 ~ BasicCharacterController ~ _OnMouseClick ~ intersects:',
+        intersects,
+      );
       const isAboutClicked = intersects.some((intersect) =>
         isDescendantOf(intersect.object, this._about),
       );
 
       const isGamingClicked = intersects.some((intersect) =>
         isDescendantOf(intersect.object, this._gaming),
+      );
+      const isCreditsClicked = intersects.some((intersect) =>
+        isDescendantOf(intersect.object, this._credits),
       );
 
       const isExperienceClicked = intersects.some((intersect) =>
@@ -480,12 +498,15 @@ class BasicCharacterController {
       } else if (isTableClicked) {
         this._onaAnotherWindow = true;
         createModernDesktop(this);
-      } else if (isGamingClicked) {
+      } else if (isCreditsClicked) {
         this._onaAnotherWindow = true;
-        startSpaceShooterGame(this);
+        showCredits(this, credits);
       } else if (isBlogClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, ['./resources/images/blogs.png']);
+      } else if (isGamingClicked) {
+        this._onaAnotherWindow = true;
+        startSpaceShooterGame(this);
       } else if (isExperienceClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, [
