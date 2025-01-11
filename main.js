@@ -1,12 +1,12 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
-import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js";
+import { FBXLoader } from "https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js";
 import {
   _hideLoadingScreen,
   _showLoadingScreen,
   _updateLoadingProgress,
-} from './loading.js';
-import { sliderShow } from './showPages.js';
-import { startSpaceShooterGame } from './game.js';
+} from "./loading.js";
+import { sliderShow } from "./showPages.js";
+import { startSpaceShooterGame } from "./game.js";
 import {
   checkIntersection,
   createBox3,
@@ -14,14 +14,14 @@ import {
   createPlane,
   findChildByName,
   isDescendantOf,
-} from './utils.js';
-import { fenceDefinitions, objectsDefinitions } from './const.js';
-import { CharacterFSM } from './characterFSM.js';
-import { ThirdPersonCamera } from './thirdPersonCamera.js';
-import { createModernDesktop } from './osinterface.js';
-import { showCredits } from './modelsUsed.js';
-import { credits } from './credits.js';
-import { CharacterInput } from './characterInput.js';
+} from "./utils.js";
+import { fenceDefinitions, objectsDefinitions } from "./const.js";
+import { CharacterFSM } from "./characterFSM.js";
+import { ThirdPersonCamera } from "./thirdPersonCamera.js";
+import { createModernDesktop } from "./osinterface.js";
+import { showCredits } from "./modelsUsed.js";
+import { credits } from "./credits.js";
+import { CharacterInput } from "./characterInput.js";
 
 class BasicCharacterControllerProxy {
   constructor(animations) {
@@ -52,7 +52,7 @@ class BasicCharacterController {
     this._animations = {};
     this._input = new CharacterInput();
     this._stateMachine = new CharacterFSM(
-      new BasicCharacterControllerProxy(this._animations),
+      new BasicCharacterControllerProxy(this._animations)
     );
     this._fence = fenceDefinitions.map((fence) => {
       const fencebox = createBox3(
@@ -62,7 +62,7 @@ class BasicCharacterController {
         fence.x,
         fence.y,
         fence.z,
-        fence.angle,
+        fence.angle
       );
       return fencebox;
     });
@@ -75,7 +75,7 @@ class BasicCharacterController {
         object.y,
         object.z,
         object.angle,
-        object.color,
+        object.color
       );
       this._params.scene.add(objectBox);
       return objectBox;
@@ -93,7 +93,7 @@ class BasicCharacterController {
     this._params.camera.add(this._audioListener);
     this._walkingSound = new THREE.Audio(this._audioListener);
     const audioLoader = new THREE.AudioLoader();
-    audioLoader.load('./resources/audio/walking.mp3', (buffer) => {
+    audioLoader.load("./resources/audio/walking.mp3", (buffer) => {
       this._walkingSound.setBuffer(buffer);
       this._walkingSound.setLoop(true);
       this._walkingSound.setVolume(0.5);
@@ -103,19 +103,19 @@ class BasicCharacterController {
   _updateSound(state) {
     if (
       !this._walkingSound.isPlaying &&
-      (state === 'walk' || state === 'run' || state === 'walkback')
+      (state === "walk" || state === "run" || state === "walkback")
     ) {
       this._walkingSound.play();
-      this._walkingSound.setPlaybackRate(state === 'run' ? 1.8 : 1.0);
+      this._walkingSound.setPlaybackRate(state === "run" ? 1.8 : 1.0);
     } else if (
       this._walkingSound.isPlaying &&
-      state !== 'walk' &&
-      state !== 'run' &&
-      state !== 'walkback'
+      state !== "walk" &&
+      state !== "run" &&
+      state !== "walkback"
     ) {
       this._walkingSound.stop();
     } else if (this._walkingSound.isPlaying) {
-      this._walkingSound.setPlaybackRate(state === 'run' ? 1.8 : 1.0);
+      this._walkingSound.setPlaybackRate(state === "run" ? 1.8 : 1.0);
     }
   }
 
@@ -125,18 +125,18 @@ class BasicCharacterController {
       () => {
         _hideLoadingScreen();
         if (this._stateMachine) {
-          this._stateMachine.SetState('idle');
+          this._stateMachine.SetState("idle");
         }
       },
       (url, itemsLoaded, itemsTotal) => {
         const progress = Math.round((itemsLoaded / itemsTotal) * 100);
         _updateLoadingProgress(progress);
-      },
+      }
     );
 
     const loader = new FBXLoader(this._manager);
-    loader.setPath('./resources/models/');
-    loader.load('about.fbx', (fbx) => {
+    loader.setPath("./resources/models/");
+    loader.load("about.fbx", (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
         if (c.material) {
@@ -153,7 +153,7 @@ class BasicCharacterController {
       this._about = fbx;
     });
 
-    loader.load('table.fbx', (fbx) => {
+    loader.load("table.fbx", (fbx) => {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
@@ -167,7 +167,7 @@ class BasicCharacterController {
       this._params.scene.add(fbx);
     });
 
-    loader.load('project.fbx', (fbx) => {
+    loader.load("project.fbx", (fbx) => {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
@@ -180,7 +180,7 @@ class BasicCharacterController {
       this._params.scene.add(fbx);
       this._project = fbx;
     });
-    loader.load('blog.fbx', (fbx) => {
+    loader.load("blog.fbx", (fbx) => {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
@@ -194,7 +194,7 @@ class BasicCharacterController {
       this._blog = fbx;
     });
 
-    loader.load('experience.fbx', (fbx) => {
+    loader.load("exp.fbx", (fbx) => {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
@@ -208,7 +208,7 @@ class BasicCharacterController {
       this._params.scene.add(fbx);
     });
 
-    loader.load('projector.fbx', (fbx) => {
+    loader.load("projector.fbx", (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
@@ -225,7 +225,7 @@ class BasicCharacterController {
       this._params.scene.add(fbx);
     });
 
-    loader.load('instruction.fbx', (fbx) => {
+    loader.load("instruction.fbx", (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
@@ -234,7 +234,7 @@ class BasicCharacterController {
       this._instruction = fbx;
       this._params.scene.add(fbx);
     });
-    loader.load('spacecablecar.fbx', (fbx) => {
+    loader.load("spacecablecar.fbx", (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
@@ -247,23 +247,23 @@ class BasicCharacterController {
 
       this._carfly = fbx;
     });
-    loader.load('lounge.fbx', (fbx) => {
+    loader.load("lounge.fbx", (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
 
       this._gaming = findChildByName(
         fbx,
-        'Bar_completo2ARCADE_Bar_completo2Mat_Arcade_SI_0',
+        "Bar_completo2ARCADE_Bar_completo2Mat_Arcade_SI_0"
       );
 
       this._credits = findChildByName(
         fbx,
-        'Bar_completo2base_del_tacho_Bar_completo2Atlas2_0003',
+        "Bar_completo2base_del_tacho_Bar_completo2Atlas2_0003"
       );
       this._push = findChildByName(
         fbx,
-        'Bar_completo2base_del_tacho_Bar_completo2Atlas2_000',
+        "Bar_completo2base_del_tacho_Bar_completo2Atlas2_000"
       );
 
       fbx.scale.setScalar(0.4);
@@ -271,7 +271,7 @@ class BasicCharacterController {
       fbx.rotation.y = -Math.PI / 2;
       this._params.scene.add(fbx);
     });
-    loader.load('entrance.fbx', (fbx) => {
+    loader.load("entrance.fbx", (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
       });
@@ -280,7 +280,7 @@ class BasicCharacterController {
       fbx.position.set(-17, -4, -155);
       this._params.scene.add(fbx);
     });
-    loader.load('scififence.fbx', (fbx) => {
+    loader.load("scififence.fbx", (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
         if (c.material) {
@@ -357,7 +357,7 @@ class BasicCharacterController {
       });
     });
 
-    loader.load('ananthu.fbx', (fbx) => {
+    loader.load("ananthu.fbx", (fbx) => {
       fbx.scale.setScalar(0.1);
       fbx.traverse((c) => {
         c.castShadow = true;
@@ -384,7 +384,7 @@ class BasicCharacterController {
 
       this._manager = new THREE.LoadingManager();
       this._manager.onLoad = () => {
-        this._stateMachine.SetState('idle');
+        this._stateMachine.SetState("idle");
       };
 
       const _OnLoad = (animName, anim) => {
@@ -398,39 +398,39 @@ class BasicCharacterController {
       };
 
       const loader = new FBXLoader(this._manager);
-      loader.setPath('./resources/models/');
-      loader.load('walking.fbx', (a) => {
-        _OnLoad('walk', a);
+      loader.setPath("./resources/models/");
+      loader.load("walking.fbx", (a) => {
+        _OnLoad("walk", a);
       });
-      loader.load('running.fbx', (a) => {
-        _OnLoad('run', a);
+      loader.load("running.fbx", (a) => {
+        _OnLoad("run", a);
       });
-      loader.load('breathing.fbx', (a) => {
-        _OnLoad('idle', a);
+      loader.load("breathing.fbx", (a) => {
+        _OnLoad("idle", a);
       });
-      loader.load('dancing.fbx', (a) => {
-        _OnLoad('dance', a);
+      loader.load("dancing.fbx", (a) => {
+        _OnLoad("dance", a);
       });
-      loader.load('walkingback.fbx', (a) => {
-        _OnLoad('walkback', a);
+      loader.load("walkingback.fbx", (a) => {
+        _OnLoad("walkback", a);
       });
-      loader.load('walkleft.fbx', (a) => {
-        _OnLoad('walkleft', a);
+      loader.load("walkleft.fbx", (a) => {
+        _OnLoad("walkleft", a);
       });
-      loader.load('walkright.fbx', (a) => {
-        _OnLoad('walkright', a);
+      loader.load("walkright.fbx", (a) => {
+        _OnLoad("walkright", a);
       });
     });
     setTimeout(() => {
-      sliderShow(this, ['./resources/images/instruction.png']);
+      sliderShow(this, ["./resources/images/instruction.png"]);
     }, 3000);
   }
 
   _AddMouseClickListener() {
     window.addEventListener(
-      'click',
+      "click",
       (event) => this._OnMouseClick(event),
-      false,
+      false
     );
   }
 
@@ -441,41 +441,41 @@ class BasicCharacterController {
     this._raycaster.setFromCamera(this._mouse, this._params.camera);
     const intersects = this._raycaster.intersectObjects(
       this._params.scene.children,
-      true,
+      true
     );
 
     if (intersects.length > 0 && !this._onaAnotherWindow) {
       const isAboutClicked = intersects.some((intersect) =>
-        isDescendantOf(intersect.object, this._about),
+        isDescendantOf(intersect.object, this._about)
       );
 
       const isGamingClicked = intersects.some((intersect) =>
-        isDescendantOf(intersect.object, this._gaming),
+        isDescendantOf(intersect.object, this._gaming)
       );
       const isCreditsClicked = intersects.some((intersect) =>
-        isDescendantOf(intersect.object, this._credits),
+        isDescendantOf(intersect.object, this._credits)
       );
 
       const isExperienceClicked = intersects.some((intersect) =>
-        isDescendantOf(intersect.object, this._experience),
+        isDescendantOf(intersect.object, this._experience)
       );
 
       const isBlogClicked = intersects.some((intersect) =>
-        isDescendantOf(intersect.object, this._blog),
+        isDescendantOf(intersect.object, this._blog)
       );
       const isProjectClicked = intersects.some((intersect) =>
-        isDescendantOf(intersect.object, this._project),
+        isDescendantOf(intersect.object, this._project)
       );
 
       const isTableClicked = intersects.some((intersect) =>
-        isDescendantOf(intersect.object, this._table),
+        isDescendantOf(intersect.object, this._table)
       );
       const isInstructionClicked = intersects.some((intersect) =>
-        isDescendantOf(intersect.object, this._instruction),
+        isDescendantOf(intersect.object, this._instruction)
       );
       if (isAboutClicked) {
         this._onaAnotherWindow = true;
-        sliderShow(this, ['./resources/images/about.png']);
+        sliderShow(this, ["./resources/images/about.png"]);
       } else if (isTableClicked) {
         this._onaAnotherWindow = true;
         createModernDesktop(this);
@@ -484,27 +484,27 @@ class BasicCharacterController {
         showCredits(this, credits);
       } else if (isBlogClicked) {
         this._onaAnotherWindow = true;
-        sliderShow(this, ['./resources/images/blogs.png']);
+        sliderShow(this, ["./resources/images/blogs.png"]);
       } else if (isGamingClicked) {
         this._onaAnotherWindow = true;
         startSpaceShooterGame(this);
       } else if (isExperienceClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, [
-          './resources/images/experince.png',
-          './resources/images/ellucian.png',
-          './resources/images/cisco.png',
+          "./resources/images/experince.png",
+          "./resources/images/ellucian.png",
+          "./resources/images/cisco.png",
         ]);
       } else if (isProjectClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, [
-          './resources/images/projects.png',
-          './resources/images/souls.png',
-          './resources/images/sanchari.png',
+          "./resources/images/projects.png",
+          "./resources/images/souls.png",
+          "./resources/images/sanchari.png",
         ]);
       } else if (isInstructionClicked) {
         this._onaAnotherWindow = true;
-        sliderShow(this, ['./resources/images/instruction.png']);
+        sliderShow(this, ["./resources/images/instruction.png"]);
       }
     }
   }
@@ -531,7 +531,7 @@ class BasicCharacterController {
     const frameDecceleration = new THREE.Vector3(
       velocity.x * this._decceleration.x,
       velocity.y * this._decceleration.y,
-      velocity.z * this._decceleration.z,
+      velocity.z * this._decceleration.z
     );
     frameDecceleration.multiplyScalar(timeInSeconds);
     frameDecceleration.z =
@@ -546,20 +546,20 @@ class BasicCharacterController {
       new THREE.Vector3(
         characterPosition.x - boxSize / 2,
         characterPosition.y - boxSize / 2,
-        characterPosition.z - boxSize / 2,
+        characterPosition.z - boxSize / 2
       ),
       new THREE.Vector3(
         characterPosition.x + boxSize / 2,
         characterPosition.y + boxSize / 2,
-        characterPosition.z + boxSize / 2,
-      ),
+        characterPosition.z + boxSize / 2
+      )
     );
 
     const collidesWithAnyFence = this._fence.some((fence) =>
-      fence.intersectsBox(characterBBox),
+      fence.intersectsBox(characterBBox)
     );
     const collidesWithAnyObjects = this._objects.some((obj) =>
-      obj.intersectsBox(characterBBox),
+      obj.intersectsBox(characterBBox)
     );
 
     if (collidesWithAnyFence || collidesWithAnyObjects) {
@@ -573,15 +573,15 @@ class BasicCharacterController {
           const collisionDirection = new THREE.Vector3();
           collisionDirection.subVectors(
             obj.getCenter(new THREE.Vector3()),
-            characterBBox.getCenter(new THREE.Vector3()),
+            characterBBox.getCenter(new THREE.Vector3())
           );
           collisionDirection.normalize();
 
           const dot = forward.dot(collisionDirection);
           if (dot > 0) {
-            this._collisionDirection = 'front';
+            this._collisionDirection = "front";
           } else {
-            this._collisionDirection = 'back';
+            this._collisionDirection = "back";
           }
           break;
         }
@@ -600,7 +600,7 @@ class BasicCharacterController {
       acc.multiplyScalar(2.0);
     }
 
-    if (this._stateMachine._currentState.Name == 'dance') {
+    if (this._stateMachine._currentState.Name == "dance") {
       acc.multiplyScalar(0.0);
     }
     if (this._walkingSound && this._stateMachine._currentState) {
@@ -621,12 +621,12 @@ class BasicCharacterController {
         this._wasInCollision = true;
         velocity.z = 0;
         if (
-          this._collisionDirection === 'front' &&
+          this._collisionDirection === "front" &&
           this._input._keys.backward
         ) {
           velocity.z -= acc.z * timeInSeconds;
         } else if (
-          this._collisionDirection === 'back' &&
+          this._collisionDirection === "back" &&
           this._input._keys.forward
         ) {
           velocity.z += acc.z * timeInSeconds;
@@ -636,7 +636,7 @@ class BasicCharacterController {
           _A.set(0, 1, 0);
           _Q.setFromAxisAngle(
             _A,
-            4.0 * Math.PI * timeInSeconds * this._acceleration.y,
+            4.0 * Math.PI * timeInSeconds * this._acceleration.y
           );
           _R.multiply(_Q);
         }
@@ -644,7 +644,7 @@ class BasicCharacterController {
           _A.set(0, 1, 0);
           _Q.setFromAxisAngle(
             _A,
-            4.0 * -Math.PI * timeInSeconds * this._acceleration.y,
+            4.0 * -Math.PI * timeInSeconds * this._acceleration.y
           );
           _R.multiply(_Q);
         }
@@ -681,7 +681,7 @@ class BasicCharacterController {
         _A.set(0, 1, 0);
         _Q.setFromAxisAngle(
           _A,
-          4.0 * Math.PI * timeInSeconds * this._acceleration.y,
+          4.0 * Math.PI * timeInSeconds * this._acceleration.y
         );
         _R.multiply(_Q);
       }
@@ -689,7 +689,7 @@ class BasicCharacterController {
         _A.set(0, 1, 0);
         _Q.setFromAxisAngle(
           _A,
-          4.0 * -Math.PI * timeInSeconds * this._acceleration.y,
+          4.0 * -Math.PI * timeInSeconds * this._acceleration.y
         );
         _R.multiply(_Q);
       }
@@ -740,11 +740,11 @@ class PortfolioWorld {
     document.body.appendChild(this._threejs.domElement);
 
     window.addEventListener(
-      'resize',
+      "resize",
       () => {
         this._OnWindowResize();
       },
-      false,
+      false
     );
 
     const fov = 60;
@@ -754,7 +754,7 @@ class PortfolioWorld {
       fov,
       window.innerWidth / window.innerHeight,
       near,
-      far,
+      far
     );
     this._camera.position.set(150, 10, 25);
 
@@ -782,17 +782,17 @@ class PortfolioWorld {
 
     const loader = new THREE.CubeTextureLoader();
     const texture = loader.load([
-      './resources/images/right.png',
-      './resources/images/left.png',
-      './resources/images/top.png',
-      './resources/images/bottom.png',
-      './resources/images/front.png',
-      './resources/images/back.png',
+      "./resources/images/right.png",
+      "./resources/images/left.png",
+      "./resources/images/top.png",
+      "./resources/images/bottom.png",
+      "./resources/images/front.png",
+      "./resources/images/back.png",
     ]);
     texture.encoding = THREE.sRGBEncoding;
     this._scene.background = texture;
     const textureLoader = new THREE.TextureLoader();
-    const textureGround = textureLoader.load('./resources/images/ground.jpg');
+    const textureGround = textureLoader.load("./resources/images/ground.jpg");
 
     textureGround.wrapS = THREE.RepeatWrapping;
     textureGround.wrapT = THREE.RepeatWrapping;
@@ -848,7 +848,7 @@ class PortfolioWorld {
         textureGround,
         config.color,
         config.rotationY,
-        config.position,
+        config.position
       );
       this._scene.add(plane);
     });
@@ -909,7 +909,7 @@ class PortfolioWorld {
 
 let _APP = null;
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener("DOMContentLoaded", () => {
   _APP = new PortfolioWorld();
 });
 
@@ -927,7 +927,7 @@ function _LerpOverFrames(frames, t) {
 function _TestLerp(t1, t2) {
   const v1 = _LerpOverFrames(100, t1);
   const v2 = _LerpOverFrames(50, t2);
-  console.log(v1.x + ' | ' + v2.x);
+  console.log(v1.x + " | " + v2.x);
 }
 
 _TestLerp(0.01, 0.01);
