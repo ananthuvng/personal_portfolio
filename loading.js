@@ -1,5 +1,4 @@
 export const _showLoadingScreen = () => {
-  // Check if loading screen exists
   let loadingScreen = document.getElementById('loading-screen');
 
   if (!loadingScreen) {
@@ -23,7 +22,6 @@ export const _showLoadingScreen = () => {
         overflow: hidden;
       `;
 
-    // Animated loading container
     const loadingContainer = document.createElement('div');
     loadingContainer.style.cssText = `
         width: 80%;
@@ -39,7 +37,6 @@ export const _showLoadingScreen = () => {
         gap: 1.5rem;
       `;
 
-    // Loading bar
     const loadingBar = document.createElement('div');
     loadingBar.id = 'loading-bar';
     loadingBar.style.cssText = `
@@ -49,7 +46,6 @@ export const _showLoadingScreen = () => {
         transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       `;
 
-    // Loading text
     const loadingText = document.createElement('div');
     loadingText.id = 'loading-text';
     loadingText.style.cssText = `
@@ -60,7 +56,6 @@ export const _showLoadingScreen = () => {
       `;
     loadingText.textContent = 'Loading resources...';
 
-    // Percentage text
     const percentText = document.createElement('div');
     percentText.id = 'percent-text';
     percentText.style.cssText = `
@@ -71,7 +66,6 @@ export const _showLoadingScreen = () => {
       `;
     percentText.textContent = '0%';
 
-    // Spinning loader
     const spinner = document.createElement('div');
     spinner.style.cssText = `
         width: 50px;
@@ -83,7 +77,6 @@ export const _showLoadingScreen = () => {
         margin-bottom: 20px;
       `;
 
-    // Add spinning animation
     const styleSheet = document.createElement('style');
     styleSheet.textContent = `
         @keyframes spin {
@@ -93,7 +86,6 @@ export const _showLoadingScreen = () => {
       `;
     document.head.appendChild(styleSheet);
 
-    // Assemble the loading screen
     loadingContainer.appendChild(loadingText);
     loadingContainer.appendChild(loadingBar);
     loadingContainer.appendChild(percentText);
@@ -122,7 +114,6 @@ export const _updateLoadingProgress = (progress) => {
 export const _hideLoadingScreen = () => {
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen) {
-    // Optional: Add a fade-out animation
     loadingScreen.style.opacity = '0';
     loadingScreen.style.transition = 'opacity 0.5s ease-out';
 

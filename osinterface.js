@@ -402,7 +402,7 @@ export function createModernDesktop(windowStateManager) {
     {
       iconSrc: './resources/images/pdficon.png',
       label: 'Resume',
-      onClick: () => window.open('./resources/images/resume.pdf', '_blank'),
+      onClick: () => window.open('./resources/pdfs/Resume.pdf', '_blank'),
       desktop: true,
       dock: true,
     },
