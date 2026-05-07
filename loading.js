@@ -1,98 +1,71 @@
+const LOADING_TIPS = [
+  'Walk up to objects and click to interact',
+  'Hold Shift while walking to run',
+  'Press Space to dance',
+  'Click the desk to open the desktop environment',
+  'Try the arcade machine for a mini-game',
+  'Use arrow keys to strafe left and right',
+];
+
+function getRandomTip() {
+  return LOADING_TIPS[Math.floor(Math.random() * LOADING_TIPS.length)];
+}
+
 export const _showLoadingScreen = () => {
   let loadingScreen = document.getElementById('loading-screen');
 
   if (!loadingScreen) {
     loadingScreen = document.createElement('div');
     loadingScreen.id = 'loading-screen';
-    loadingScreen.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        font-family: 'Arial', sans-serif;
-        color: #ffffff;
-        gap: 2rem;
-        overflow: hidden;
-      `;
 
-    const loadingContainer = document.createElement('div');
-    loadingContainer.style.cssText = `
-        width: 80%;
-        max-width: 500px;
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        padding: 2rem;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-      `;
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-spinner';
 
-    const loadingBar = document.createElement('div');
-    loadingBar.id = 'loading-bar';
-    loadingBar.style.cssText = `
-        width: 0;
-        height: 6px;
-        background: linear-gradient(90deg, #00f5d4, #5b16d4);
-        transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      `;
+    const container = document.createElement('div');
+    container.className = 'loading-container';
 
-    const loadingText = document.createElement('div');
-    loadingText.id = 'loading-text';
-    loadingText.style.cssText = `
-        font-size: 18px;
-        font-weight: 300;
-        margin-bottom: 10px;
-        opacity: 0.7;
-      `;
-    loadingText.textContent = 'Loading resources...';
+    const title = document.createElement('div');
+    title.className = 'loading-title';
+    title.textContent = 'Building your world';
+
+    const barTrack = document.createElement('div');
+    barTrack.className = 'loading-bar-track';
+
+    const bar = document.createElement('div');
+    bar.id = 'loading-bar';
 
     const percentText = document.createElement('div');
     percentText.id = 'percent-text';
-    percentText.style.cssText = `
-        font-size: 24px;
-        font-weight: bold;
-        margin-top: 10px;
-        color: #00f5d4;
-      `;
     percentText.textContent = '0%';
 
-    const spinner = document.createElement('div');
-    spinner.style.cssText = `
-        width: 50px;
-        height: 50px;
-        border: 4px solid rgba(255,255,255,0.1);
-        border-top: 4px solid #00f5d4;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-bottom: 20px;
-      `;
+    const tip = document.createElement('div');
+    tip.className = 'loading-tip';
+    tip.id = 'loading-tip';
+    tip.textContent = `💡 ${getRandomTip()}`;
 
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = `
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `;
-    document.head.appendChild(styleSheet);
+    barTrack.appendChild(bar);
 
-    loadingContainer.appendChild(loadingText);
-    loadingContainer.appendChild(loadingBar);
-    loadingContainer.appendChild(percentText);
+    container.appendChild(title);
+    container.appendChild(barTrack);
+    container.appendChild(percentText);
+    container.appendChild(tip);
 
     loadingScreen.appendChild(spinner);
-    loadingScreen.appendChild(loadingContainer);
+    loadingScreen.appendChild(container);
     document.body.appendChild(loadingScreen);
+
+    // Rotate tips
+    setInterval(() => {
+      const tipEl = document.getElementById('loading-tip');
+      if (tipEl) {
+        tipEl.style.opacity = '0';
+        tipEl.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+          tipEl.textContent = `💡 ${getRandomTip()}`;
+          tipEl.style.opacity = '1';
+        }, 300);
+      }
+    }, 4000);
   }
 
   return loadingScreen;
@@ -115,10 +88,16 @@ export const _hideLoadingScreen = () => {
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen) {
     loadingScreen.style.opacity = '0';
-    loadingScreen.style.transition = 'opacity 0.5s ease-out';
+    loadingScreen.style.transition = 'opacity 0.8s ease-out';
 
     setTimeout(() => {
       loadingScreen.remove();
-    }, 500);
+
+      // Show the controls HUD
+      const hud = document.getElementById('controls-hud');
+      if (hud) {
+        hud.style.display = 'flex';
+      }
+    }, 800);
   }
 };

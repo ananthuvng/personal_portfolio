@@ -1,12 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Ananthuvng.me</title>
+  <meta charset="UTF-8">
+  <title>Ananthu V N G — Interactive 3D Portfolio World</title>
+  <meta name="description" content="Explore Ananthu V N G's portfolio in an immersive 3D world. Walk through interactive spaces showcasing projects, experience, and more.">
   <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a1a">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="Ananthu V N G — Interactive 3D Portfolio">
+  <meta property="og:description" content="A walkable 3D world portfolio. Navigate a sci-fi environment to discover projects, experience, and more.">
+  <meta property="og:type" content="website">
+
   <link rel="stylesheet" type="text/css" href="base.css">
 </head>
 <body>
-  <script src="./main.js" type="module">
-  </script>
+
+  <!-- Welcome / Landing Screen -->
+  <div id="welcome-screen">
+    <div class="welcome-particles" id="welcome-particles"></div>
+    <div class="welcome-content">
+      <div class="welcome-badge">
+        <span class="dot"></span>
+        Portfolio
+      </div>
+      <h1 class="welcome-name">Ananthu</h1>
+      <p class="welcome-tagline">Step into my world — an immersive 3D space where you can walk, explore, and discover my work.</p>
+      <button class="welcome-enter-btn" id="enter-world-btn">
+        Enter World
+        <span class="arrow">→</span>
+      </button>
+      <p class="welcome-hint" id="welcome-hint">Best on desktop · Use WASD to move</p>
+    </div>
+  </div>
+
+  <!-- HUD Controls Hint -->
+  <div id="controls-hud" style="display:none;">
+    <div class="hud-row">
+      <div class="hud-key" id="hud-w">W</div>
+    </div>
+    <div class="hud-row">
+      <div class="hud-key" id="hud-a">A</div>
+      <div class="hud-key" id="hud-s">S</div>
+      <div class="hud-key" id="hud-d">D</div>
+    </div>
+    <div class="hud-row">
+      <div class="hud-key wide" id="hud-shift">Shift</div>
+    </div>
+    <div class="hud-label">Move · Hold Shift to run</div>
+  </div>
+
+  <!-- Mobile Virtual Joystick -->
+  <div id="mobile-joystick">
+    <div class="joystick-base" id="joystick-base">
+      <div class="joystick-stick" id="joystick-stick"></div>
+    </div>
+  </div>
+  <button id="mobile-interact-btn">TAP</button>
+
+  <!-- Mobile Crosshair -->
+  <div id="mobile-crosshair"></div>
+
+  <!-- Interaction Prompt -->
+  <div id="interaction-prompt">Click to interact</div>
+
+  <script src="./main.js" type="module"></script>
 </body>
 </html>

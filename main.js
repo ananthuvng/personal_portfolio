@@ -33,6 +33,12 @@ class BasicCharacterControllerProxy {
   }
 }
 
+// Mobile detection helper
+const _isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+};
+
 class BasicCharacterController {
   constructor(params) {
     this._Init(params);
@@ -80,9 +86,7 @@ class BasicCharacterController {
       this._params.scene.add(objectBox);
       return objectBox;
     });
-    this._collisionDirection = null;
     this._onaAnotherWindow = false;
-    this._wasInCollision = false;
     this._LoadModels();
 
     this._AddMouseClickListener();
@@ -141,7 +145,7 @@ class BasicCharacterController {
         c.castShadow = true;
         if (c.material) {
           c.material.transparent = true;
-          c.material.opacity = 3;
+          c.material.opacity = 1.0;
         }
       });
       fbx.rotation.y = -Math.PI / 2;
@@ -157,7 +161,7 @@ class BasicCharacterController {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
-          c.material.opacity = 6;
+          c.material.opacity = 1.0;
         }
       });
       fbx.rotation.y = -Math.PI / 2;
@@ -171,7 +175,7 @@ class BasicCharacterController {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
-          c.material.opacity = 3;
+          c.material.opacity = 1.0;
         }
       });
       fbx.rotation.y = -Math.PI / 2;
@@ -184,7 +188,7 @@ class BasicCharacterController {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
-          c.material.opacity = 3;
+          c.material.opacity = 1.0;
         }
       });
       fbx.rotation.y = -Math.PI / 2;
@@ -198,7 +202,7 @@ class BasicCharacterController {
       fbx.traverse((c) => {
         if (c.material) {
           c.material.transparent = true;
-          c.material.opacity = 3;
+          c.material.opacity = 1.0;
         }
       });
       fbx.rotation.y = Math.PI / 2;
@@ -285,7 +289,7 @@ class BasicCharacterController {
         c.castShadow = true;
         if (c.material) {
           c.material.transparent = true;
-          c.material.opacity = 10;
+          c.material.opacity = 1.0;
         }
       });
 
@@ -421,9 +425,7 @@ class BasicCharacterController {
         _OnLoad('walkright', a);
       });
     });
-    setTimeout(() => {
-      sliderShow(this, ['./resources/images/instruction.png']);
-    }, 3000);
+    // Instruction popup is no longer auto-shown — users get the HUD controls overlay instead
   }
 
   _AddMouseClickListener() {
@@ -432,6 +434,41 @@ class BasicCharacterController {
       (event) => this._OnMouseClick(event),
       false,
     );
+
+    // Touch support — tap on 3D objects
+    window.addEventListener(
+      'touchend',
+      (event) => {
+        // Ignore touches on UI elements (joystick, buttons, etc.)
+        const target = event.target;
+        if (target.closest('#mobile-joystick') || 
+            target.closest('#mobile-interact-btn') ||
+            target.closest('.ui-close-btn') ||
+            target.id === 'mobile-interact-btn') return;
+        
+        if (event.changedTouches.length > 0) {
+          const touch = event.changedTouches[0];
+          this._OnMouseClick({
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+          });
+        }
+      },
+      false,
+    );
+
+    // Mobile interact button — fires raycast from screen center
+    const mobileInteractBtn = document.getElementById('mobile-interact-btn');
+    if (mobileInteractBtn) {
+      mobileInteractBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this._OnMouseClick({
+          clientX: window.innerWidth / 2,
+          clientY: window.innerHeight / 2,
+        });
+      });
+    }
   }
 
   _OnMouseClick(event) {
@@ -540,54 +577,6 @@ class BasicCharacterController {
 
     velocity.add(frameDecceleration);
 
-    const characterPosition = this._target.position;
-    const boxSize = 4;
-    const characterBBox = new THREE.Box3(
-      new THREE.Vector3(
-        characterPosition.x - boxSize / 2,
-        characterPosition.y - boxSize / 2,
-        characterPosition.z - boxSize / 2,
-      ),
-      new THREE.Vector3(
-        characterPosition.x + boxSize / 2,
-        characterPosition.y + boxSize / 2,
-        characterPosition.z + boxSize / 2,
-      ),
-    );
-
-    const collidesWithAnyFence = this._fence.some((fence) =>
-      fence.intersectsBox(characterBBox),
-    );
-    const collidesWithAnyObjects = this._objects.some((obj) =>
-      obj.intersectsBox(characterBBox),
-    );
-
-    if (collidesWithAnyFence || collidesWithAnyObjects) {
-      const forward = new THREE.Vector3(0, 0, 1);
-      forward.applyQuaternion(this._target.quaternion);
-      forward.normalize();
-
-      const collisionObjects = [...this._fence, ...this._objects];
-      for (const obj of collisionObjects) {
-        if (obj.intersectsBox(characterBBox)) {
-          const collisionDirection = new THREE.Vector3();
-          collisionDirection.subVectors(
-            obj.getCenter(new THREE.Vector3()),
-            characterBBox.getCenter(new THREE.Vector3()),
-          );
-          collisionDirection.normalize();
-
-          const dot = forward.dot(collisionDirection);
-          if (dot > 0) {
-            this._collisionDirection = 'front';
-          } else {
-            this._collisionDirection = 'back';
-          }
-          break;
-        }
-      }
-    }
-
     this._stateMachine.Update(timeInSeconds, this._input);
 
     const controlObject = this._target;
@@ -607,96 +596,48 @@ class BasicCharacterController {
       this._updateSound(this._stateMachine._currentState.Name);
     }
 
-    if (collidesWithAnyFence || collidesWithAnyObjects) {
-      if (
-        !this._input._keys.backward &&
-        !this._input._keys.forward &&
-        !this._input._keys.right &&
-        !this._input._keys.left
-      ) {
-        velocity.x = 0;
-        velocity.y = 0;
-        velocity.z = 0;
-      } else {
-        this._wasInCollision = true;
-        velocity.z = 0;
-        if (
-          this._collisionDirection === 'front' &&
-          this._input._keys.backward
-        ) {
-          velocity.z -= acc.z * timeInSeconds;
-        } else if (
-          this._collisionDirection === 'back' &&
-          this._input._keys.forward
-        ) {
-          velocity.z += acc.z * timeInSeconds;
-        }
+    // Apply input to velocity (no collision gating here — we validate after moving)
+    if (
+      !this._input._keys.left &&
+      !this._input._keys.right &&
+      !this._input._keys.moveLeft &&
+      !this._input._keys.moveRight
+    ) {
+      velocity.x = 0;
+    }
 
-        if (this._input._keys.left) {
-          _A.set(0, 1, 0);
-          _Q.setFromAxisAngle(
-            _A,
-            4.0 * Math.PI * timeInSeconds * this._acceleration.y,
-          );
-          _R.multiply(_Q);
-        }
-        if (this._input._keys.right) {
-          _A.set(0, 1, 0);
-          _Q.setFromAxisAngle(
-            _A,
-            4.0 * -Math.PI * timeInSeconds * this._acceleration.y,
-          );
-          _R.multiply(_Q);
-        }
-      }
-    } else {
-      if (this._wasInCollision) {
-        velocity.z = 0;
-        this._wasInCollision = false;
-        this._collisionDirection = null;
-      }
-
-      if (
-        !this._input._keys.left &&
-        !this._input._keys.right &&
-        !this._input._keys.moveLeft &&
-        !this._input._keys.moveRight
-      ) {
-        velocity.x = 0;
-      }
-
-      if (this._input._keys.forward) {
-        velocity.z += acc.z * timeInSeconds;
-      }
-      if (this._input._keys.backward) {
-        velocity.z -= acc.z * timeInSeconds;
-      }
-      if (this._input._keys.moveRight) {
-        velocity.x -= acc.x * timeInSeconds * 2;
-      }
-      if (this._input._keys.moveLeft) {
-        velocity.x += acc.x * timeInSeconds * 2;
-      }
-      if (this._input._keys.left) {
-        _A.set(0, 1, 0);
-        _Q.setFromAxisAngle(
-          _A,
-          4.0 * Math.PI * timeInSeconds * this._acceleration.y,
-        );
-        _R.multiply(_Q);
-      }
-      if (this._input._keys.right) {
-        _A.set(0, 1, 0);
-        _Q.setFromAxisAngle(
-          _A,
-          4.0 * -Math.PI * timeInSeconds * this._acceleration.y,
-        );
-        _R.multiply(_Q);
-      }
+    if (this._input._keys.forward) {
+      velocity.z += acc.z * timeInSeconds;
+    }
+    if (this._input._keys.backward) {
+      velocity.z -= acc.z * timeInSeconds;
+    }
+    if (this._input._keys.moveRight) {
+      velocity.x -= acc.x * timeInSeconds * 2;
+    }
+    if (this._input._keys.moveLeft) {
+      velocity.x += acc.x * timeInSeconds * 2;
+    }
+    if (this._input._keys.left) {
+      _A.set(0, 1, 0);
+      _Q.setFromAxisAngle(
+        _A,
+        4.0 * Math.PI * timeInSeconds * this._acceleration.y,
+      );
+      _R.multiply(_Q);
+    }
+    if (this._input._keys.right) {
+      _A.set(0, 1, 0);
+      _Q.setFromAxisAngle(
+        _A,
+        4.0 * -Math.PI * timeInSeconds * this._acceleration.y,
+      );
+      _R.multiply(_Q);
     }
 
     controlObject.quaternion.copy(_R);
 
+    // Save old position before moving
     const oldPosition = new THREE.Vector3();
     oldPosition.copy(controlObject.position);
 
@@ -714,6 +655,67 @@ class BasicCharacterController {
     controlObject.position.add(forward);
     controlObject.position.add(sideways);
 
+    // === Post-movement collision validation ===
+    // Check if the NEW position collides with anything. If so, revert.
+    const boxSize = 4;
+    const newPos = controlObject.position;
+    const newBBox = new THREE.Box3(
+      new THREE.Vector3(
+        newPos.x - boxSize / 2,
+        newPos.y - boxSize / 2,
+        newPos.z - boxSize / 2,
+      ),
+      new THREE.Vector3(
+        newPos.x + boxSize / 2,
+        newPos.y + boxSize / 2,
+        newPos.z + boxSize / 2,
+      ),
+    );
+
+    const allColliders = [...this._fence, ...this._objects];
+    const collidesAfterMove = allColliders.some((c) => c.intersectsBox(newBBox));
+
+    if (collidesAfterMove) {
+      // Try sliding along each axis independently instead of full revert
+      // This feels much better than a hard stop — the player can slide along walls
+
+      // Try X-only movement
+      const xOnlyPos = new THREE.Vector3(newPos.x, oldPosition.y, oldPosition.z);
+      const xBBox = new THREE.Box3(
+        new THREE.Vector3(xOnlyPos.x - boxSize / 2, xOnlyPos.y - boxSize / 2, xOnlyPos.z - boxSize / 2),
+        new THREE.Vector3(xOnlyPos.x + boxSize / 2, xOnlyPos.y + boxSize / 2, xOnlyPos.z + boxSize / 2),
+      );
+      const xCollides = allColliders.some((c) => c.intersectsBox(xBBox));
+
+      // Try Z-only movement
+      const zOnlyPos = new THREE.Vector3(oldPosition.x, oldPosition.y, newPos.z);
+      const zBBox = new THREE.Box3(
+        new THREE.Vector3(zOnlyPos.x - boxSize / 2, zOnlyPos.y - boxSize / 2, zOnlyPos.z - boxSize / 2),
+        new THREE.Vector3(zOnlyPos.x + boxSize / 2, zOnlyPos.y + boxSize / 2, zOnlyPos.z + boxSize / 2),
+      );
+      const zCollides = allColliders.some((c) => c.intersectsBox(zBBox));
+
+      if (!xCollides && !zCollides) {
+        // Both axes are free individually — pick the one with more movement
+        const xDist = Math.abs(newPos.x - oldPosition.x);
+        const zDist = Math.abs(newPos.z - oldPosition.z);
+        if (xDist > zDist) {
+          controlObject.position.copy(xOnlyPos);
+        } else {
+          controlObject.position.copy(zOnlyPos);
+        }
+      } else if (!xCollides) {
+        controlObject.position.copy(xOnlyPos);
+      } else if (!zCollides) {
+        controlObject.position.copy(zOnlyPos);
+      } else {
+        // Both axes collide — full revert, push character slightly out
+        controlObject.position.copy(oldPosition);
+        velocity.x = 0;
+        velocity.z = 0;
+      }
+    }
+
     this._position.copy(controlObject.position);
 
     if (this._mixer) {
@@ -728,13 +730,16 @@ class PortfolioWorld {
   }
 
   _Initialize() {
+    const mobile = _isMobile();
+
     this._threejs = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: !mobile, // Disable antialiasing on mobile for performance
     });
     this._threejs.outputEncoding = THREE.sRGBEncoding;
     this._threejs.shadowMap.enabled = true;
-    this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
-    this._threejs.setPixelRatio(window.devicePixelRatio);
+    this._threejs.shadowMap.type = mobile ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
+    // Cap pixel ratio at 2 on mobile to avoid GPU overload
+    this._threejs.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 2 : 3));
     this._threejs.setSize(window.innerWidth, window.innerHeight);
 
     document.body.appendChild(this._threejs.domElement);
@@ -764,8 +769,9 @@ class PortfolioWorld {
     mainLight.target.position.set(0, 0, 0);
     mainLight.castShadow = true;
     mainLight.shadow.bias = -0.0001;
-    mainLight.shadow.mapSize.width = 4096;
-    mainLight.shadow.mapSize.height = 4096;
+    const shadowRes = mobile ? 1024 : 4096;
+    mainLight.shadow.mapSize.width = shadowRes;
+    mainLight.shadow.mapSize.height = shadowRes;
     mainLight.shadow.camera.near = 0.5;
     mainLight.shadow.camera.far = 500.0;
     mainLight.shadow.camera.left = -200;
@@ -773,7 +779,7 @@ class PortfolioWorld {
     mainLight.shadow.camera.top = 200;
     mainLight.shadow.camera.bottom = -200;
     this._scene.add(mainLight);
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.1);
+    const ambientLight = new THREE.AmbientLight(0x404060, 0.25);
     this._scene.add(ambientLight);
 
     const backLight = new THREE.DirectionalLight(0xffffff, 0.1);
@@ -857,6 +863,8 @@ class PortfolioWorld {
     this._previousRAF = null;
 
     this._LoadAnimatedModel();
+    this._CreateAmbientParticles();
+    this._CreateInteractableGlows();
     this._RAF();
   }
 
@@ -904,32 +912,265 @@ class PortfolioWorld {
     }
 
     this._thirdPersonCamera.Update(timeElapsedS);
+
+    // Animate ambient particles
+    if (this._particles) {
+      const positions = this._particles.geometry.attributes.position.array;
+      for (let i = 0; i < positions.length; i += 3) {
+        positions[i + 1] += 0.02 * Math.sin(Date.now() * 0.001 + i);
+        if (positions[i + 1] > 40) positions[i + 1] = 0;
+      }
+      this._particles.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // Pulse interactable glows
+    if (this._glowLights) {
+      const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.002);
+      this._glowLights.forEach((light) => {
+        light.intensity = light.userData.baseIntensity * (0.6 + pulse * 0.4);
+      });
+    }
+  }
+
+  _CreateAmbientParticles() {
+    const particleCount = 300;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount * 3; i += 3) {
+      positions[i] = (Math.random() - 0.5) * 400;     // x
+      positions[i + 1] = Math.random() * 40;            // y
+      positions[i + 2] = (Math.random() - 0.5) * 300;  // z
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const material = new THREE.PointsMaterial({
+      color: 0x26fffd,
+      size: 0.5,
+      transparent: true,
+      opacity: 0.4,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    this._particles = new THREE.Points(geometry, material);
+    this._scene.add(this._particles);
+  }
+
+  _CreateInteractableGlows() {
+    this._glowLights = [];
+
+    const glowPositions = [
+      { x: 0, y: 15, z: -8, color: 0x26fffd, intensity: 0.6 },      // About sign
+      { x: 98, y: 15, z: -58, color: 0x5b16d4, intensity: 0.5 },    // Project sign
+      { x: 98, y: 15, z: 43, color: 0xff6b35, intensity: 0.5 },     // Blog sign
+      { x: 110, y: 10, z: 0, color: 0x22c55e, intensity: 0.5 },     // Experience
+      { x: 308, y: 8, z: 0, color: 0x26fffd, intensity: 0.8 },      // Table/desk
+      { x: -55, y: 8, z: 3, color: 0xff4488, intensity: 0.5 },      // Lounge
+    ];
+
+    glowPositions.forEach((glow) => {
+      const pointLight = new THREE.PointLight(glow.color, glow.intensity, 30);
+      pointLight.position.set(glow.x, glow.y, glow.z);
+      pointLight.userData.baseIntensity = glow.intensity;
+      this._scene.add(pointLight);
+      this._glowLights.push(pointLight);
+    });
   }
 }
 
 let _APP = null;
 
-window.addEventListener('DOMContentLoaded', () => {
-  _APP = new PortfolioWorld();
-});
-
-function _LerpOverFrames(frames, t) {
-  const s = new THREE.Vector3(0, 0, 0);
-  const e = new THREE.Vector3(100, 0, 0);
-  const c = s.clone();
-
-  for (let i = 0; i < frames; i++) {
-    c.lerp(e, t);
+// ===== Welcome Screen Particles =====
+function initWelcomeParticles() {
+  const container = document.getElementById('welcome-particles');
+  if (!container) return;
+  for (let i = 0; i < 40; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'welcome-particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.animationDelay = Math.random() * 6 + 's';
+    particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+    particle.style.width = (Math.random() * 4 + 1) + 'px';
+    particle.style.height = particle.style.width;
+    container.appendChild(particle);
   }
-  return c;
 }
 
-function _TestLerp(t1, t2) {
-  const v1 = _LerpOverFrames(100, t1);
-  const v2 = _LerpOverFrames(50, t2);
-  console.log(v1.x + ' | ' + v2.x);
+// ===== HUD Key Highlighting =====
+function initHUDKeyHighlighting() {
+  const keyMap = {
+    'w': 'hud-w', 'W': 'hud-w',
+    'a': 'hud-a', 'A': 'hud-a',
+    's': 'hud-s', 'S': 'hud-s',
+    'd': 'hud-d', 'D': 'hud-d',
+    'Shift': 'hud-shift',
+  };
+
+  document.addEventListener('keydown', (e) => {
+    const id = keyMap[e.key];
+    if (id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+  });
+
+  document.addEventListener('keyup', (e) => {
+    const id = keyMap[e.key];
+    if (id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    }
+  });
 }
 
-_TestLerp(0.01, 0.01);
-_TestLerp(1.0 / 100.0, 1.0 / 50.0);
-_TestLerp(1.0 - Math.pow(0.3, 1.0 / 100.0), 1.0 - Math.pow(0.3, 1.0 / 50.0));
+// ===== Mobile Virtual Joystick =====
+function initMobileJoystick() {
+  const base = document.getElementById('joystick-base');
+  const stick = document.getElementById('joystick-stick');
+  if (!base || !stick) return;
+
+  const maxDistance = 40;
+  let isActive = false;
+  let startX, startY;
+
+  // Simulate key presses for the existing input system
+  const simulateKey = (code, down) => {
+    const event = new KeyboardEvent(down ? 'keydown' : 'keyup', {
+      keyCode: code,
+      bubbles: true,
+    });
+    document.dispatchEvent(event);
+  };
+
+  let activeKeys = { w: false, a: false, s: false, d: false, shift: false };
+
+  base.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    isActive = true;
+    const touch = e.touches[0];
+    const rect = base.getBoundingClientRect();
+    startX = rect.left + rect.width / 2;
+    startY = rect.top + rect.height / 2;
+  }, { passive: false });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isActive) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    let dx = touch.clientX - startX;
+    let dy = touch.clientY - startY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist > maxDistance) {
+      dx = dx / dist * maxDistance;
+      dy = dy / dist * maxDistance;
+    }
+
+    stick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+    const thresholdY = 20; // Forward/backward deadzone
+    const thresholdX = 30; // Turning deadzone (larger to prevent accidental spins)
+    const isRunning = dist > maxDistance * 0.95; // Require full push to run
+
+    // Forward/backward (W=87, S=83)
+    if (dy < -thresholdY && !activeKeys.w) {
+      simulateKey(87, true);
+      activeKeys.w = true;
+    } else if (dy >= -thresholdY && activeKeys.w) {
+      simulateKey(87, false);
+      activeKeys.w = false;
+    }
+
+    if (dy > thresholdY && !activeKeys.s) {
+      simulateKey(83, true);
+      activeKeys.s = true;
+    } else if (dy <= thresholdY && activeKeys.s) {
+      simulateKey(83, false);
+      activeKeys.s = false;
+    }
+
+    // Left/right rotation (A=65, D=68)
+    if (dx < -thresholdX && !activeKeys.a) {
+      simulateKey(65, true);
+      activeKeys.a = true;
+    } else if (dx >= -thresholdX && activeKeys.a) {
+      simulateKey(65, false);
+      activeKeys.a = false;
+    }
+
+    if (dx > thresholdX && !activeKeys.d) {
+      simulateKey(68, true);
+      activeKeys.d = true;
+    } else if (dx <= thresholdX && activeKeys.d) {
+      simulateKey(68, false);
+      activeKeys.d = false;
+    }
+
+    // Shift for running (16)
+    if (isRunning && !activeKeys.shift) {
+      simulateKey(16, true);
+      activeKeys.shift = true;
+    } else if (!isRunning && activeKeys.shift) {
+      simulateKey(16, false);
+      activeKeys.shift = false;
+    }
+  }, { passive: false });
+
+  const resetJoystick = () => {
+    if (!isActive) return;
+    isActive = false;
+    stick.style.transform = 'translate(-50%, -50%)';
+
+    // Release all keys
+    if (activeKeys.w) { simulateKey(87, false); activeKeys.w = false; }
+    if (activeKeys.a) { simulateKey(65, false); activeKeys.a = false; }
+    if (activeKeys.s) { simulateKey(83, false); activeKeys.s = false; }
+    if (activeKeys.d) { simulateKey(68, false); activeKeys.d = false; }
+    if (activeKeys.shift) { simulateKey(16, false); activeKeys.shift = false; }
+  };
+
+  document.addEventListener('touchend', resetJoystick);
+  document.addEventListener('touchcancel', resetJoystick);
+}
+
+// ===== Init =====
+window.addEventListener('DOMContentLoaded', () => {
+  const mobile = _isMobile();
+  
+  if (mobile) {
+    document.body.classList.add('is-mobile');
+    
+    // Update hint text for mobile
+    const hintEl = document.getElementById('welcome-hint');
+    if (hintEl) {
+      hintEl.textContent = 'Works on mobile · Use joystick to move · TAP to interact';
+    }
+  }
+
+  initWelcomeParticles();
+  initHUDKeyHighlighting();
+
+  const enterBtn = document.getElementById('enter-world-btn');
+  const welcomeScreen = document.getElementById('welcome-screen');
+
+  if (enterBtn && welcomeScreen) {
+    enterBtn.addEventListener('click', () => {
+      welcomeScreen.classList.add('hide');
+      setTimeout(() => {
+        welcomeScreen.remove();
+      }, 800);
+
+      // Initialize the 3D world
+      _APP = new PortfolioWorld();
+
+      // Initialize mobile joystick
+      initMobileJoystick();
+    });
+  } else {
+    // Fallback if welcome screen elements are missing
+    _APP = new PortfolioWorld();
+    initMobileJoystick();
+  }
+});

@@ -21,18 +21,24 @@ export function showCredits(
     transition: 'opacity 0.3s ease-in-out',
   });
 
+  const isMobile = window.innerWidth <= 768;
+
   const creditsContainer = document.createElement('div');
   Object.assign(creditsContainer.style, {
     position: 'relative',
-    width: '80%',
+    boxSizing: 'border-box',
+    width: isMobile ? '92%' : '80%',
     maxWidth: '800px',
     maxHeight: '80vh',
-    backgroundColor: '#313131',
-    borderRadius: '10px',
-    padding: '40px',
+    backgroundColor: 'rgba(20, 20, 30, 0.9)',
+    borderRadius: isMobile ? '12px' : '16px',
+    padding: isMobile ? '24px 20px' : '40px',
     color: 'white',
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: "'Outfit', Arial, sans-serif",
     overflow: 'auto',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(20px)',
+    WebkitOverflowScrolling: 'touch', // Smooth scroll on iOS
   });
 
   const header = `
@@ -69,62 +75,9 @@ export function showCredits(
 
   creditsContainer.innerHTML = header + content;
 
-  const closeButton = document.createElement('div');
-  Object.assign(closeButton.style, {
-    position: 'absolute',
-    top: '4%',
-    right: '2%',
-    width: '3vw',
-    height: '3vw',
-    minWidth: '30px',
-    minHeight: '30px',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(5px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    zIndex: '1000',
-  });
-
-  const closeIcon = document.createElement('div');
-  Object.assign(closeIcon.style, {
-    position: 'relative',
-    width: '50%',
-    height: '50%',
-  });
-
-  const line1 = document.createElement('div');
-  const line2 = document.createElement('div');
-  const lineStyles = {
-    position: 'absolute',
-    width: '100%',
-    height: '2px',
-    backgroundColor: 'white',
-    top: '50%',
-    left: '0',
-    transform: 'translateY(-50%)',
-    transition: 'transform 0.3s ease',
-  };
-
-  Object.assign(line1.style, { ...lineStyles, transform: 'rotate(45deg)' });
-  Object.assign(line2.style, { ...lineStyles, transform: 'rotate(-45deg)' });
-
-  closeIcon.appendChild(line1);
-  closeIcon.appendChild(line2);
-  closeButton.appendChild(closeIcon);
-
-  closeButton.addEventListener('mouseenter', () => {
-    closeButton.style.backgroundColor = 'rgba(38, 255, 253, 0.8)';
-    closeButton.style.transform = 'rotate(90deg)';
-  });
-
-  closeButton.addEventListener('mouseleave', () => {
-    closeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-    closeButton.style.transform = 'rotate(0deg)';
-  });
+  const closeButton = document.createElement('button');
+  closeButton.className = 'ui-close-btn';
+  closeButton.setAttribute('aria-label', 'Close credits');
 
   const closePopup = () => {
     popup.style.opacity = '0';

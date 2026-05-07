@@ -5,32 +5,42 @@ export function startSpaceShooterGame(windowStateManager) {
 
   const gameContainer = document.createElement('div');
   gameContainer.id = 'game-container';
-  gameContainer.style.position = 'fixed';
-  gameContainer.style.top = '0';
-  gameContainer.style.left = '0';
-  gameContainer.style.width = '100%';
-  gameContainer.style.height = '100%';
-  gameContainer.style.backgroundColor = 'black';
-  gameContainer.style.zIndex = '9999';
-  gameContainer.style.display = 'flex';
-  gameContainer.style.alignItems = 'center';
-  gameContainer.style.justifyContent = 'center';
-  gameContainer.style.opacity = '0';
-  gameContainer.style.transition = 'opacity 0.3s ease-in-out';
+  Object.assign(gameContainer.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'black',
+    zIndex: '9999',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: '0',
+    transition: 'opacity 0.3s ease-in-out',
+  });
 
   const instructions = document.createElement('div');
-  instructions.style.position = 'fixed';
-  instructions.style.top = '20px';
-  instructions.style.left = '50%';
-  instructions.style.transform = 'translateX(-50%)';
-  instructions.style.color = 'white';
-  instructions.style.fontSize = '16px';
-  instructions.style.textAlign = 'center';
-  instructions.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-  instructions.style.padding = '10px 20px';
-  instructions.style.borderRadius = '8px';
-  instructions.style.fontFamily = 'Arial, sans-serif';
-  instructions.innerHTML = `
+  Object.assign(instructions.style, {
+    position: 'fixed',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    color: 'white',
+    fontSize: '16px',
+    textAlign: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: '10px 20px',
+    borderRadius: '8px',
+    fontFamily: "'Outfit', Arial, sans-serif",
+  });
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+
+  instructions.innerHTML = isMobile ? `
+    <div style="margin-bottom: 5px; font-size: 16px; color: #26fffd;">How to Play</div>
+    <div style="font-size: 13px;">Drag left/right to move · Auto-fires bullets</div>
+  ` : `
     <div style="margin-bottom: 5px; font-size: 18px; color: #26fffd;">How to Play</div>
     <div>Move: ← → or A/D keys | Shoot: Spacebar</div>
   `;
@@ -39,99 +49,27 @@ export function startSpaceShooterGame(windowStateManager) {
   const canvas = document.createElement('canvas');
   canvas.id = 'gameCanvas';
   const ctx = canvas.getContext('2d');
-  canvas.width = Math.min(window.innerWidth * 0.8, 800);
-  canvas.height = Math.min(window.innerHeight * 0.8, 600);
+  canvas.width = Math.min(window.innerWidth * (isMobile ? 0.95 : 0.8), 800);
+  canvas.height = Math.min(window.innerHeight * (isMobile ? 0.85 : 0.8), 600);
+  canvas.style.touchAction = 'none'; // Prevent browser gestures on canvas
   gameContainer.appendChild(canvas);
 
-  const closeBtn = document.createElement('div');
-  Object.assign(closeBtn.style, {
-    position: 'absolute',
-    top: '2%',
-    right: '2%',
-    width: '3vw',
-    height: '3vw',
-    minWidth: '30px',
-    minHeight: '30px',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(5px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    zIndex: '1000',
-  });
-
-  const closeIcon = document.createElement('div');
-  Object.assign(closeIcon.style, {
-    position: 'relative',
-    width: '50%',
-    height: '50%',
-  });
-
-  const line1 = document.createElement('div');
-  const line2 = document.createElement('div');
-  const lineStyles = {
-    position: 'absolute',
-    width: '100%',
-    height: '2px',
-    backgroundColor: 'white',
-    top: '50%',
-    left: '0',
-    transform: 'translateY(-50%)',
-    transition: 'transform 0.3s ease',
-  };
-
-  Object.assign(line1.style, { ...lineStyles, transform: 'rotate(45deg)' });
-  Object.assign(line2.style, { ...lineStyles, transform: 'rotate(-45deg)' });
-
-  closeIcon.appendChild(line1);
-  closeIcon.appendChild(line2);
-  closeBtn.appendChild(closeIcon);
-
-  closeBtn.addEventListener('mouseenter', () => {
-    closeBtn.style.backgroundColor = 'rgba(38, 255, 253, 0.8)';
-    closeBtn.style.transform = 'rotate(90deg)';
-  });
-
-  closeBtn.addEventListener('mouseleave', () => {
-    closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-    closeBtn.style.transform = 'rotate(0deg)';
-  });
+  // Close button
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'ui-close-btn';
+  closeBtn.setAttribute('aria-label', 'Close game');
 
   closeBtn.addEventListener('click', closeGame);
 
-  function closeGame() {
-    gameOver = true;
-    document.removeEventListener('keydown', movePlayer);
-    document.removeEventListener('keyup', stopPlayerMovement);
-    document.removeEventListener('keydown', handleShoot);
-
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-    }
-    if (spawnIntervalId) {
-      clearInterval(spawnIntervalId);
-    }
-
-    gameContainer.style.opacity = '0';
-    setTimeout(() => {
-      document.body.removeChild(gameContainer);
-
-      if (windowStateManager) {
-        windowStateManager._onaAnotherWindow = false;
-      }
-    }, 300);
-  }
-
   const scoreDisplay = document.createElement('div');
-  scoreDisplay.className = 'score';
-  scoreDisplay.style.position = 'fixed';
-  scoreDisplay.style.top = '20px';
-  scoreDisplay.style.left = '20px';
-  scoreDisplay.style.color = 'white';
-  scoreDisplay.style.fontSize = '24px';
+  Object.assign(scoreDisplay.style, {
+    position: 'fixed',
+    top: '20px',
+    left: '20px',
+    color: 'white',
+    fontSize: '24px',
+    fontFamily: "'Space Grotesk', monospace",
+  });
   scoreDisplay.innerText = 'Score: 0';
   gameContainer.appendChild(scoreDisplay);
 
@@ -199,6 +137,78 @@ export function startSpaceShooterGame(windowStateManager) {
     document.addEventListener('keydown', movePlayer);
     document.addEventListener('keyup', stopPlayerMovement);
     document.addEventListener('keydown', handleShoot);
+
+    // Remove any existing game-over overlay
+    const existingOverlay = gameContainer.querySelector('.game-over-overlay');
+    if (existingOverlay) {
+      existingOverlay.remove();
+    }
+
+    // Setup touch controls for mobile
+    if (isMobile) {
+      setupTouchControls();
+    }
+  }
+
+  // ===== Mobile Touch Controls =====
+  let touchStartX = null;
+  let autoShootInterval = null;
+
+  function handleTouchStart(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    touchStartX = touch.clientX - rect.left;
+  }
+
+  function handleTouchMove(e) {
+    e.preventDefault();
+    if (touchStartX === null) return;
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const canvasRatio = canvas.width / rect.width;
+
+    // Map touch position directly to player position
+    const targetX = (touchX * canvasRatio) - player.width / 2;
+    const dx = targetX - player.x;
+    player.dx = Math.max(-player.speed * 2, Math.min(dx, player.speed * 2));
+  }
+
+  function handleTouchEnd(e) {
+    e.preventDefault();
+    touchStartX = null;
+    player.dx = 0;
+  }
+
+  function setupTouchControls() {
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+
+    // Auto-shoot on mobile
+    if (autoShootInterval) clearInterval(autoShootInterval);
+    autoShootInterval = setInterval(() => {
+      if (!gameOver) {
+        const currentTime = Date.now();
+        if (currentTime - lastBulletTime > BULLET_COOLDOWN) {
+          createBullet();
+          lastBulletTime = currentTime;
+        }
+      }
+    }, 300);
+  }
+
+  function cleanupTouchControls() {
+    canvas.removeEventListener('touchstart', handleTouchStart);
+    canvas.removeEventListener('touchmove', handleTouchMove);
+    canvas.removeEventListener('touchend', handleTouchEnd);
+    canvas.removeEventListener('touchcancel', handleTouchEnd);
+    if (autoShootInterval) {
+      clearInterval(autoShootInterval);
+      autoShootInterval = null;
+    }
   }
 
   const stars = [];
@@ -206,6 +216,7 @@ export function startSpaceShooterGame(windowStateManager) {
   const STAR_SPEED = 1;
 
   function createStars() {
+    stars.length = 0;
     for (let i = 0; i < NUM_STARS; i++) {
       stars.push({
         x: Math.random() * canvas.width,
@@ -234,6 +245,7 @@ export function startSpaceShooterGame(windowStateManager) {
       ctx.fill();
     });
   }
+
   function updatePlayer() {
     if (
       player.x + player.dx >= 0 &&
@@ -242,6 +254,7 @@ export function startSpaceShooterGame(windowStateManager) {
       player.x += player.dx;
     }
   }
+
   function drawPlayer() {
     ctx.drawImage(
       images.player,
@@ -273,6 +286,7 @@ export function startSpaceShooterGame(windowStateManager) {
 
   function handleShoot(e) {
     if (e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault();
       const currentTime = Date.now();
       if (currentTime - lastBulletTime > BULLET_COOLDOWN) {
         createBullet();
@@ -366,24 +380,67 @@ export function startSpaceShooterGame(windowStateManager) {
     });
   }
 
+  function showGameOverScreen() {
+    // Remove event listeners to prevent further input
+    document.removeEventListener('keydown', movePlayer);
+    document.removeEventListener('keyup', stopPlayerMovement);
+    document.removeEventListener('keydown', handleShoot);
+
+    if (spawnIntervalId) {
+      clearInterval(spawnIntervalId);
+      spawnIntervalId = null;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'game-over-overlay';
+
+    const title = document.createElement('div');
+    title.className = 'game-over-title';
+    title.textContent = 'Game Over';
+
+    const scoreText = document.createElement('div');
+    scoreText.className = 'game-over-score';
+    scoreText.textContent = `Final Score: ${score}`;
+
+    const buttons = document.createElement('div');
+    buttons.className = 'game-over-buttons';
+
+    const playAgainBtn = document.createElement('button');
+    playAgainBtn.className = 'game-btn primary';
+    playAgainBtn.textContent = 'Play Again';
+    playAgainBtn.addEventListener('click', () => {
+      overlay.remove();
+      resetGame();
+      startGame();
+    });
+
+    const exitBtn = document.createElement('button');
+    exitBtn.className = 'game-btn secondary';
+    exitBtn.textContent = 'Exit';
+    exitBtn.addEventListener('click', () => {
+      closeGame();
+    });
+
+    buttons.appendChild(playAgainBtn);
+    buttons.appendChild(exitBtn);
+
+    overlay.appendChild(title);
+    overlay.appendChild(scoreText);
+    overlay.appendChild(buttons);
+
+    gameContainer.appendChild(overlay);
+  }
+
   function gameLoop() {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     updateStars();
     drawStars();
+
     if (gameOver) {
       cancelAnimationFrame(animationFrameId);
-      clearInterval(spawnIntervalId);
-
-      const playAgain = confirm(
-        `Game Over! Final Score: ${score}\nDo you want to play again?`,
-      );
-      if (playAgain) {
-        resetGame();
-        startGame();
-      } else {
-        closeGame();
-      }
+      animationFrameId = null;
+      showGameOverScreen();
       return;
     }
 
@@ -410,25 +467,28 @@ export function startSpaceShooterGame(windowStateManager) {
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
-  closeBtn.addEventListener('click', closeGame);
-
   function closeGame() {
     gameOver = true;
 
     document.removeEventListener('keydown', movePlayer);
     document.removeEventListener('keyup', stopPlayerMovement);
     document.removeEventListener('keydown', handleShoot);
+    cleanupTouchControls();
 
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
     }
     if (spawnIntervalId) {
       clearInterval(spawnIntervalId);
+      spawnIntervalId = null;
     }
 
     gameContainer.style.opacity = '0';
     setTimeout(() => {
-      document.body.removeChild(gameContainer);
+      if (document.body.contains(gameContainer)) {
+        document.body.removeChild(gameContainer);
+      }
 
       if (windowStateManager) {
         windowStateManager._onaAnotherWindow = false;

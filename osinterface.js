@@ -133,6 +133,17 @@ class ModernTaskbar {
       gap: '10px',
     });
 
+    // Live clock in right section
+    this.clock = document.createElement('div');
+    Object.assign(this.clock.style, {
+      fontFamily: "'Space Grotesk', monospace",
+      fontSize: '13px',
+      color: 'rgba(255, 255, 255, 0.8)',
+      marginRight: '8px',
+    });
+    this._updateClock();
+    this._clockInterval = setInterval(() => this._updateClock(), 1000);
+
     this.element.appendChild(this.leftSection);
     this.element.appendChild(this.centerSection);
     this.element.appendChild(this.rightSection);
@@ -141,6 +152,13 @@ class ModernTaskbar {
     if (desktopArea) {
       desktopArea.style.marginBottom = '50px';
     }
+  }
+
+  _updateClock() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    this.clock.textContent = `${hours}:${minutes}`;
   }
 
   addSystemIcon(iconSrc, label, onClick) {
@@ -157,6 +175,7 @@ class ModernTaskbar {
     const icon = this._createIcon(iconSrc, label, onClick);
     this.rightSection.appendChild(icon);
   }
+
   _createIcon(iconSrc, label, onClick, isDockIcon = false) {
     const iconWrapper = document.createElement('div');
     Object.assign(iconWrapper.style, {
@@ -181,7 +200,27 @@ class ModernTaskbar {
     });
     icon.src = iconSrc;
 
-    this.rightSection.style.paddingRight = '10px';
+    // Create tooltip
+    const tooltip = document.createElement('div');
+    Object.assign(tooltip.style, {
+      position: 'absolute',
+      bottom: 'calc(100% + 8px)',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      padding: '5px 10px',
+      background: 'rgba(0, 0, 0, 0.85)',
+      color: 'white',
+      fontSize: '11px',
+      fontFamily: "'Outfit', sans-serif",
+      borderRadius: '6px',
+      whiteSpace: 'nowrap',
+      opacity: '0',
+      visibility: 'hidden',
+      transition: 'opacity 0.2s ease, visibility 0.2s ease',
+      pointerEvents: 'none',
+      zIndex: '200',
+    });
+    tooltip.textContent = label;
 
     iconWrapper.addEventListener('mouseenter', () => {
       iconWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
@@ -204,83 +243,14 @@ class ModernTaskbar {
     iconWrapper.addEventListener('click', onClick);
 
     iconWrapper.appendChild(icon);
+    iconWrapper.appendChild(tooltip);
     return iconWrapper;
   }
-}
-class CloseButton {
-  constructor(container, cleanup, windowStateManager) {
-    this.element = document.createElement('div');
-    Object.assign(this.element.style, {
-      position: 'absolute',
-      top: '20px',
-      right: '20px',
-      width: '40px',
-      height: '40px',
-      borderRadius: '50%',
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      backdropFilter: 'blur(5px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      zIndex: '1000',
-    });
 
-    const closeIcon = document.createElement('div');
-    Object.assign(closeIcon.style, {
-      position: 'relative',
-      width: '20px',
-      height: '20px',
-    });
-
-    const line1 = document.createElement('div');
-    const line2 = document.createElement('div');
-    const lineStyles = {
-      position: 'absolute',
-      width: '100%',
-      height: '2px',
-      backgroundColor: 'white',
-      top: '50%',
-      left: '0',
-      transform: 'translateY(-50%)',
-      transition: 'transform 0.3s ease',
-    };
-
-    Object.assign(line1.style, { ...lineStyles, transform: 'rotate(45deg)' });
-    Object.assign(line2.style, { ...lineStyles, transform: 'rotate(-45deg)' });
-
-    closeIcon.appendChild(line1);
-    closeIcon.appendChild(line2);
-    this.element.appendChild(closeIcon);
-
-    let isClosing = false;
-
-    this.element.addEventListener('mouseenter', () => {
-      this.element.style.backgroundColor = 'rgba(38, 255, 253, 0.8)';
-      this.element.style.transform = 'rotate(90deg)';
-    });
-
-    this.element.addEventListener('mouseleave', () => {
-      this.element.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-      this.element.style.transform = 'rotate(0deg)';
-    });
-
-    this.element.addEventListener('click', () => {
-      if (isClosing) return;
-      isClosing = true;
-
-      if (windowStateManager) {
-        windowStateManager._onaAnotherWindow = false;
-      }
-      container.style.transform = 'scale(0.8)';
-      container.style.opacity = '0';
-
-      setTimeout(() => {
-        cleanup();
-        document.body.removeChild(container);
-      }, 300);
-    });
+  destroy() {
+    if (this._clockInterval) {
+      clearInterval(this._clockInterval);
+    }
   }
 }
 
@@ -331,6 +301,7 @@ class DesktopIcon {
     Object.assign(this.label.style, {
       color: 'white',
       fontSize: '13px',
+      fontFamily: "'Outfit', sans-serif",
       textAlign: 'center',
       wordBreak: 'break-word',
       maxWidth: '100%',
@@ -380,12 +351,14 @@ export function createModernDesktop(windowStateManager) {
     width: '100%',
     height: '100%',
     backgroundColor: '#1a1a1a',
-    backgroundImage: 'linear-gradient(135deg, #1a1a1a 0%, #363636 100%)',
+    backgroundImage: 'linear-gradient(135deg, #1a1a1a 0%, #0d0d2b 50%, #1a0a2e 100%)',
     overflow: 'hidden',
     opacity: '0',
     transform: 'scale(1.1)',
     transition: 'transform 0.3s ease, opacity 0.3s ease',
   });
+
+  const isMobile = window.innerWidth <= 768;
 
   const desktopArea = document.createElement('div');
   desktopArea.id = 'desktop-area';
@@ -393,7 +366,13 @@ export function createModernDesktop(windowStateManager) {
     position: 'relative',
     width: '100%',
     height: 'calc(100% - 50px)',
-    padding: '20px',
+    padding: isMobile ? '16px' : '20px',
+    display: isMobile ? 'flex' : 'block',
+    flexWrap: isMobile ? 'wrap' : 'nowrap',
+    alignContent: isMobile ? 'flex-start' : 'initial',
+    justifyContent: isMobile ? 'center' : 'initial',
+    gap: isMobile ? '8px' : '0',
+    overflow: isMobile ? 'auto' : 'hidden',
   });
 
   const taskbar = new ModernTaskbar();
@@ -440,14 +419,63 @@ export function createModernDesktop(windowStateManager) {
   const cleanupFunctions = icons
     .filter((icon) => icon.desktop)
     .map((iconData, index) => {
-      const icon = new DesktopIcon({
-        iconSrc: iconData.iconSrc,
-        label: iconData.label,
-        x: (index % 3) * 120 + 20,
-        y: Math.floor(index / 3) * 120 + 20,
-      });
+      if (isMobile) {
+        // Simplified tap-only icons for mobile (no drag)
+        const mobileIcon = document.createElement('div');
+        Object.assign(mobileIcon.style, {
+          width: '80px',
+          height: '80px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          borderRadius: '12px',
+          padding: '6px',
+          transition: 'background 0.2s ease',
+        });
 
-      return icon.mount(desktopArea, iconData.onClick);
+        const iconImg = document.createElement('img');
+        Object.assign(iconImg.style, {
+          width: '36px',
+          height: '36px',
+          marginBottom: '6px',
+          pointerEvents: 'none',
+        });
+        iconImg.src = iconData.iconSrc;
+
+        const label = document.createElement('span');
+        Object.assign(label.style, {
+          color: 'white',
+          fontSize: '11px',
+          fontFamily: "'Outfit', sans-serif",
+          textAlign: 'center',
+          pointerEvents: 'none',
+          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+        });
+        label.textContent = iconData.label;
+
+        mobileIcon.appendChild(iconImg);
+        mobileIcon.appendChild(label);
+
+        mobileIcon.addEventListener('click', iconData.onClick);
+        mobileIcon.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          iconData.onClick();
+        });
+
+        desktopArea.appendChild(mobileIcon);
+        return () => {}; // No cleanup needed for mobile icons
+      } else {
+        const icon = new DesktopIcon({
+          iconSrc: iconData.iconSrc,
+          label: iconData.label,
+          x: (index % 3) * 120 + 20,
+          y: Math.floor(index / 3) * 120 + 20,
+        });
+
+        return icon.mount(desktopArea, iconData.onClick);
+      }
     });
 
   icons
@@ -458,18 +486,36 @@ export function createModernDesktop(windowStateManager) {
 
   taskbar.addUtilityIcon('./resources/images/wifi.png', 'WiFi', () => {});
   taskbar.addUtilityIcon('./resources/images/battery.png', 'Battery', () => {});
+  taskbar.rightSection.appendChild(taskbar.clock);
 
-  const closeButton = new CloseButton(
-    container,
-    () => {
+  // Close button using shared CSS class
+  const closeButton = document.createElement('button');
+  closeButton.className = 'ui-close-btn';
+  closeButton.setAttribute('aria-label', 'Close desktop');
+
+  let isClosing = false;
+  closeButton.addEventListener('click', () => {
+    if (isClosing) return;
+    isClosing = true;
+
+    if (windowStateManager) {
+      windowStateManager._onaAnotherWindow = false;
+    }
+    container.style.transform = 'scale(0.8)';
+    container.style.opacity = '0';
+
+    setTimeout(() => {
       cleanupFunctions.forEach((cleanup) => cleanup());
-    },
-    windowStateManager,
-  );
+      taskbar.destroy();
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
+    }, 300);
+  });
 
   container.appendChild(desktopArea);
   container.appendChild(taskbar.element);
-  container.appendChild(closeButton.element);
+  container.appendChild(closeButton);
   document.body.appendChild(container);
 
   requestAnimationFrame(() => {
@@ -479,6 +525,7 @@ export function createModernDesktop(windowStateManager) {
 
   return () => {
     cleanupFunctions.forEach((cleanup) => cleanup());
+    taskbar.destroy();
     if (document.body.contains(container)) {
       document.body.removeChild(container);
     }
