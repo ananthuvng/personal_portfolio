@@ -436,16 +436,17 @@ class BasicCharacterController {
       false,
     );
 
-    // Touch support — tap on 3D objects
+    // Touch support — tap directly on 3D objects
     window.addEventListener(
       'touchend',
       (event) => {
-        // Ignore touches on UI elements (joystick, buttons, etc.)
+        // Ignore touches on UI elements (joystick, overlays, etc.)
         const target = event.target;
         if (target.closest('#mobile-joystick') || 
-            target.closest('#mobile-interact-btn') ||
+            target.closest('.popup-overlay') ||
             target.closest('.ui-close-btn') ||
-            target.id === 'mobile-interact-btn') return;
+            target.closest('#welcome-screen') ||
+            target.closest('#loading-screen')) return;
         
         if (event.changedTouches.length > 0) {
           const touch = event.changedTouches[0];
@@ -457,19 +458,6 @@ class BasicCharacterController {
       },
       false,
     );
-
-    // Mobile interact button — fires raycast from screen center
-    const mobileInteractBtn = document.getElementById('mobile-interact-btn');
-    if (mobileInteractBtn) {
-      mobileInteractBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this._OnMouseClick({
-          clientX: window.innerWidth / 2,
-          clientY: window.innerHeight / 2,
-        });
-      });
-    }
   }
 
   _OnMouseClick(event) {
@@ -605,48 +593,61 @@ class BasicCharacterController {
     if (this._input._keys.backward) {
       velocity.z -= acc.z * timeInSeconds;
     }
-    if (this._input._keys.moveRight) {
+    // A/D and arrow keys both strafe now (rotation is mouse/touch controlled)
+    if (this._input._keys.moveRight || this._input._keys.right) {
       velocity.x -= acc.x * timeInSeconds * 2;
     }
-    if (this._input._keys.moveLeft) {
+    if (this._input._keys.moveLeft || this._input._keys.left) {
       velocity.x += acc.x * timeInSeconds * 2;
     }
-    if (this._input._keys.left) {
-      _A.set(0, 1, 0);
-      _Q.setFromAxisAngle(
-        _A,
-        4.0 * Math.PI * timeInSeconds * this._acceleration.y,
-      );
-      _R.multiply(_Q);
-    }
-    if (this._input._keys.right) {
-      _A.set(0, 1, 0);
-      _Q.setFromAxisAngle(
-        _A,
-        4.0 * -Math.PI * timeInSeconds * this._acceleration.y,
-      );
-      _R.multiply(_Q);
+
+    // Get camera yaw for camera-relative movement
+    const cameraYaw = this._thirdPersonCamera ? this._thirdPersonCamera.Yaw : 0;
+
+    // Build movement direction relative to camera
+    const forward = new THREE.Vector3(0, 0, 1);
+    const cameraQuat = new THREE.Quaternion();
+    cameraQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), cameraYaw);
+    forward.applyQuaternion(cameraQuat);
+    forward.normalize();
+
+    const sideways = new THREE.Vector3(1, 0, 0);
+    sideways.applyQuaternion(cameraQuat);
+    sideways.normalize();
+
+    // Rotate character to face movement direction (GTA-style)
+    const isMoving = this._input._keys.forward || this._input._keys.backward || 
+                     this._input._keys.left || this._input._keys.right ||
+                     this._input._keys.moveLeft || this._input._keys.moveRight;
+    
+    if (isMoving) {
+      // Calculate desired facing direction from input
+      let moveDir = new THREE.Vector3(0, 0, 0);
+      if (this._input._keys.forward) moveDir.add(forward);
+      if (this._input._keys.backward) moveDir.sub(forward);
+      if (this._input._keys.moveLeft || this._input._keys.left) moveDir.add(sideways);
+      if (this._input._keys.moveRight || this._input._keys.right) moveDir.sub(sideways);
+
+      if (moveDir.lengthSq() > 0.001) {
+        moveDir.normalize();
+        const targetAngle = Math.atan2(moveDir.x, moveDir.z);
+        const targetQuat = new THREE.Quaternion();
+        targetQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), targetAngle);
+        // Smooth rotation towards movement direction
+        controlObject.quaternion.slerp(targetQuat, 0.15);
+      }
     }
 
-    controlObject.quaternion.copy(_R);
+    // Move the character
+    const moveForward = forward.clone().multiplyScalar(velocity.z * timeInSeconds);
+    const moveSideways = sideways.clone().multiplyScalar(velocity.x * timeInSeconds);
 
     // Save old position before moving
     const oldPosition = new THREE.Vector3();
     oldPosition.copy(controlObject.position);
 
-    const forward = new THREE.Vector3(0, 0, 1);
-    forward.applyQuaternion(controlObject.quaternion);
-    forward.normalize();
-
-    const sideways = new THREE.Vector3(1, 0, 0);
-    sideways.applyQuaternion(controlObject.quaternion);
-    sideways.normalize();
-
-    sideways.multiplyScalar(velocity.x * timeInSeconds);
-    forward.multiplyScalar(velocity.z * timeInSeconds);
-
-    controlObject.position.add(forward);
-    controlObject.position.add(sideways);
+    controlObject.position.add(moveForward);
+    controlObject.position.add(moveSideways);
 
     // === Post-movement collision validation ===
     // Check if the NEW position collides with anything. If so, revert.
@@ -871,7 +872,11 @@ class PortfolioWorld {
     this._thirdPersonCamera = new ThirdPersonCamera({
       camera: this._camera,
       target: this._controls,
+      renderer: this._threejs,
     });
+
+    // Give the character controller a reference to the camera for direction alignment
+    this._controls._thirdPersonCamera = this._thirdPersonCamera;
   }
 
   _OnWindowResize() {

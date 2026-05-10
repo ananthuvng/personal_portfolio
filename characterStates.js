@@ -89,15 +89,9 @@ export class WalkState extends State {
   Exit() {}
 
   Update(timeElapsed, input) {
-    if (input._keys.forward || input._keys.backward) {
+    if (input._keys.forward || input._keys.backward || input._keys.left || input._keys.right || input._keys.moveLeft || input._keys.moveRight) {
       if (input._keys.shift) {
         this._parent.SetState('run');
-      }
-      return;
-    }
-    if (input._keys.backward) {
-      if (!input._keys.shift) {
-        this._parent.SetState('walkbac');
       }
       return;
     }
@@ -189,14 +183,9 @@ export class RunState extends State {
   Exit() {}
 
   Update(timeElapsed, input) {
-    if (input._keys.forward) {
+    if (input._keys.forward || input._keys.backward || input._keys.left || input._keys.right || input._keys.moveLeft || input._keys.moveRight) {
       if (!input._keys.shift) {
         this._parent.SetState('walk');
-      }
-      return;
-    } else if (input._keys.backward) {
-      if (!input._keys.shift) {
-        this._parent.SetState('walkback');
       }
       return;
     }
@@ -232,16 +221,12 @@ export class IdleState extends State {
   Exit() {}
 
   Update(_, input) {
-    if (input._keys.forward) {
+    if (input._keys.forward || input._keys.left || input._keys.right || input._keys.moveLeft || input._keys.moveRight) {
       this._parent.SetState('walk');
     } else if (input._keys.backward) {
       this._parent.SetState('walkback');
     } else if (input._keys.space) {
       this._parent.SetState('dance');
-    } else if (input._keys.moveLeft) {
-      this._parent.SetState('walkleft');
-    } else if (input._keys.moveRight) {
-      this._parent.SetState('walkright');
     }
   }
 }

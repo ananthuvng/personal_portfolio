@@ -568,29 +568,33 @@ body {
   box-shadow: 0 0 20px var(--accent-glow);
 }
 
-#mobile-interact-btn {
+#mobile-tap-hint {
   position: fixed;
-  bottom: 50px;
-  right: 30px;
+  bottom: 24px;
+  right: 20px;
   z-index: 600;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  border: none;
   display: none;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: #0a0a1a;
-  font-weight: 700;
-  touch-action: none;
-  box-shadow: 0 0 30px var(--accent-glow);
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  opacity: 0;
+  animation: hintFadeIn 1s 2s ease forwards;
+}
+
+@keyframes hintFadeIn {
+  to { opacity: 1; }
 }
 
 @media (hover: none) and (pointer: coarse) {
-  #mobile-interact-btn {
-    display: flex;
+  #mobile-tap-hint {
+    display: block;
   }
 }
 
@@ -780,16 +784,12 @@ body {
 }
 
 /* Touch device specific - enforced by JS class */
-.is-mobile #mobile-crosshair {
-  display: block;
-}
-
 .is-mobile #mobile-joystick {
   display: block !important;
 }
 
-.is-mobile #mobile-interact-btn {
-  display: flex !important;
+.is-mobile #mobile-tap-hint {
+  display: block !important;
 }
 
 .is-mobile #controls-hud {
@@ -847,12 +847,10 @@ body {
     left: 20px;
   }
 
-  #mobile-interact-btn {
-    bottom: 40px;
-    right: 20px;
-    width: 56px;
-    height: 56px;
-    font-size: 20px;
+  #mobile-tap-hint {
+    bottom: 20px;
+    right: 16px;
+    font-size: 11px;
   }
 
   .loading-container {
@@ -889,12 +887,11 @@ body {
     height: 34px;
   }
 
-  #mobile-interact-btn {
-    bottom: 20px;
-    right: 15px;
-    width: 48px;
-    height: 48px;
-    font-size: 18px;
+  #mobile-tap-hint {
+    bottom: 10px;
+    right: 10px;
+    font-size: 10px;
+    padding: 6px 12px;
   }
 
   .welcome-content {
