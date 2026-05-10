@@ -427,12 +427,94 @@ class BasicCharacterController {
       });
     });
     // Instruction popup is no longer auto-shown — users get the HUD controls overlay instead
+
+    // ===== PROXIMITY INTERACTION SYSTEM =====
+    this._interactables = [];
+    this._nearestInteractable = null;
+    this._interactPrompt = document.getElementById('interaction-prompt');
+
+    // F key to interact
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyF' && this._nearestInteractable && !this._onaAnotherWindow) {
+        this._TriggerInteraction(this._nearestInteractable);
+      }
+    });
+  }
+
+  _SetupInteractables() {
+    // Called once all models are loaded to register interactable objects
+    this._interactables = [
+      { obj: this._about, label: 'About', range: 45, action: () => showAboutPage(this) },
+      { obj: this._experience, label: 'Experience', range: 45, action: () => showExperiencePage(this) },
+      { obj: this._project, label: 'Projects', range: 45, action: () => showProjectsPage(this) },
+      { obj: this._blog, label: 'Blog', range: 45, action: () => showBlogPage(this) },
+      { obj: this._table, label: 'Desktop', range: 40, action: () => createModernDesktop(this) },
+      { obj: this._gaming, label: 'Arcade', range: 30, action: () => startSpaceShooterGame(this) },
+      { obj: this._credits, label: 'Credits', range: 30, action: () => showCredits(this, credits) },
+      { obj: this._instruction, label: 'Instructions', range: 30, action: () => sliderShow(this, ['./resources/images/instruction.png']) },
+    ].filter(i => i.obj); // only include loaded objects
+  }
+
+  _TriggerInteraction(interactable) {
+    this._onaAnotherWindow = true;
+    interactable.action();
+  }
+
+  _CheckProximity() {
+    if (!this._target || this._onaAnotherWindow) {
+      if (this._interactPrompt) this._interactPrompt.style.display = 'none';
+      return;
+    }
+
+    // Lazy-initialize interactables list
+    if (this._interactables.length === 0) {
+      this._SetupInteractables();
+    }
+
+    const playerPos = this._target.position;
+    let nearest = null;
+    let nearestDist = Infinity;
+
+    for (const item of this._interactables) {
+      if (!item.obj) continue;
+      const objPos = new THREE.Vector3();
+      item.obj.getWorldPosition(objPos);
+      const dist = playerPos.distanceTo(objPos);
+      if (dist < item.range && dist < nearestDist) {
+        nearest = item;
+        nearestDist = dist;
+      }
+    }
+
+    this._nearestInteractable = nearest;
+
+    if (this._interactPrompt) {
+      if (nearest) {
+        const isMobile = 'ontouchstart' in window;
+        this._interactPrompt.textContent = isMobile
+          ? `Tap to open ${nearest.label}`
+          : `Press F — ${nearest.label}`;
+        this._interactPrompt.style.display = 'block';
+      } else {
+        this._interactPrompt.style.display = 'none';
+      }
+    }
   }
 
   _AddMouseClickListener() {
     window.addEventListener(
       'click',
-      (event) => this._OnMouseClick(event),
+      (event) => {
+        // If pointer is locked, raycast from center crosshair
+        if (document.pointerLockElement) {
+          this._OnMouseClick({
+            clientX: window.innerWidth / 2,
+            clientY: window.innerHeight / 2,
+          });
+        } else {
+          this._OnMouseClick(event);
+        }
+      },
       false,
     );
 
@@ -442,12 +524,12 @@ class BasicCharacterController {
       (event) => {
         // Ignore touches on UI elements (joystick, overlays, etc.)
         const target = event.target;
-        if (target.closest('#mobile-joystick') || 
-            target.closest('.popup-overlay') ||
-            target.closest('.ui-close-btn') ||
-            target.closest('#welcome-screen') ||
-            target.closest('#loading-screen')) return;
-        
+        if (target.closest('#mobile-joystick') ||
+          target.closest('.popup-overlay') ||
+          target.closest('.ui-close-btn') ||
+          target.closest('#welcome-screen') ||
+          target.closest('#loading-screen')) return;
+
         if (event.changedTouches.length > 0) {
           const touch = event.changedTouches[0];
           this._OnMouseClick({
@@ -605,21 +687,23 @@ class BasicCharacterController {
     const cameraYaw = this._thirdPersonCamera ? this._thirdPersonCamera.Yaw : 0;
 
     // Build movement direction relative to camera
-    const forward = new THREE.Vector3(0, 0, 1);
+    // Camera sits at (sin(yaw), y, cos(yaw)) from the character,
+    // so "into the screen" (away from camera) is the negated direction
+    const forward = new THREE.Vector3(0, 0, -1);
     const cameraQuat = new THREE.Quaternion();
     cameraQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), cameraYaw);
     forward.applyQuaternion(cameraQuat);
     forward.normalize();
 
-    const sideways = new THREE.Vector3(1, 0, 0);
+    const sideways = new THREE.Vector3(-1, 0, 0);
     sideways.applyQuaternion(cameraQuat);
     sideways.normalize();
 
     // Rotate character to face movement direction (GTA-style)
-    const isMoving = this._input._keys.forward || this._input._keys.backward || 
-                     this._input._keys.left || this._input._keys.right ||
-                     this._input._keys.moveLeft || this._input._keys.moveRight;
-    
+    const isMoving = this._input._keys.forward || this._input._keys.backward ||
+      this._input._keys.left || this._input._keys.right ||
+      this._input._keys.moveLeft || this._input._keys.moveRight;
+
     if (isMoving) {
       // Calculate desired facing direction from input
       let moveDir = new THREE.Vector3(0, 0, 0);
@@ -715,6 +799,9 @@ class BasicCharacterController {
     if (this._mixer) {
       this._mixer.update(timeInSeconds);
     }
+
+    // Check if player is near any interactable object
+    this._CheckProximity();
   }
 }
 
@@ -1136,10 +1223,10 @@ function initMobileJoystick() {
 // ===== Init =====
 window.addEventListener('DOMContentLoaded', () => {
   const mobile = _isMobile();
-  
+
   if (mobile) {
     document.body.classList.add('is-mobile');
-    
+
     // Update hint text for mobile
     const hintEl = document.getElementById('welcome-hint');
     if (hintEl) {

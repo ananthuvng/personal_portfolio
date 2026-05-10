@@ -13,8 +13,8 @@ export class ThirdPersonCamera {
     this._distance = 30; // distance from character
 
     this._mouseSensitivity = 0.003;
-    this._pitchMin = -0.2;  // don't go below ground
-    this._pitchMax = 1.2;   // don't go too high
+    this._pitchMin = 0.15;  // high overhead view
+    this._pitchMax = 1.5;   // slightly below horizontal — no ground clipping
 
     this._initMouseControls();
   }
@@ -35,6 +35,14 @@ export class ThirdPersonCamera {
         this._yaw -= e.movementX * this._mouseSensitivity;
         this._pitch -= e.movementY * this._mouseSensitivity;
         this._pitch = Math.max(this._pitchMin, Math.min(this._pitchMax, this._pitch));
+      }
+    });
+
+    // Show/hide crosshair based on pointer lock state
+    document.addEventListener('pointerlockchange', () => {
+      const crosshair = document.getElementById('crosshair');
+      if (crosshair) {
+        crosshair.style.display = document.pointerLockElement ? 'block' : 'none';
       }
     });
 

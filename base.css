@@ -416,37 +416,29 @@ body {
 /* ===== INTERACTION PROMPT ===== */
 #interaction-prompt {
   position: fixed;
-  top: 50%;
+  bottom: 15%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   z-index: 500;
-  padding: 10px 24px;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-glass);
-  border-radius: 12px;
+  padding: 12px 28px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(38, 255, 253, 0.25);
+  border-radius: 50px;
   font-family: var(--font-primary);
   font-size: 14px;
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: rgba(38, 255, 253, 0.9);
+  letter-spacing: 0.5px;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  display: none;
+  animation: promptPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(38, 255, 253, 0.1);
 }
 
-#interaction-prompt.show {
-  opacity: 1;
-}
-
-#interaction-prompt .key-hint {
-  display: inline-block;
-  padding: 2px 8px;
-  background: rgba(38, 255, 253, 0.15);
-  border: 1px solid rgba(38, 255, 253, 0.3);
-  border-radius: 4px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--accent-primary);
-  margin: 0 4px;
+@keyframes promptPulse {
+  0%, 100% { border-color: rgba(38, 255, 253, 0.25); }
+  50% { border-color: rgba(38, 255, 253, 0.5); }
 }
 
 /* ===== GAME OVER SCREEN ===== */
@@ -566,6 +558,22 @@ body {
   transform: translate(-50%, -50%);
   transition: transform 0.05s ease-out;
   box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* ===== CENTER CROSSHAIR ===== */
+#crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 800;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+  font-weight: 300;
+  pointer-events: none;
+  display: none;
+  text-shadow: 0 0 4px rgba(0,0,0,0.5);
+  font-family: monospace;
 }
 
 #mobile-tap-hint {

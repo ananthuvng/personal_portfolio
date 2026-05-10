@@ -23,16 +23,32 @@ function createOverlay(windowStateManager) {
     padding: '20px',
   });
 
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'ui-close-btn';
-  closeBtn.setAttribute('aria-label', 'Close');
-  closeBtn.addEventListener('click', () => {
+  const closeOverlay = () => {
     overlay.style.opacity = '0';
     setTimeout(() => {
       if (document.body.contains(overlay)) document.body.removeChild(overlay);
       if (windowStateManager) windowStateManager._onaAnotherWindow = false;
+      // Re-engage pointer lock so mouse look resumes
+      const canvas = document.querySelector('canvas');
+      if (canvas && !('ontouchstart' in window)) {
+        canvas.requestPointerLock();
+      }
     }, 300);
-  });
+  };
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'ui-close-btn';
+  closeBtn.setAttribute('aria-label', 'Close');
+  closeBtn.addEventListener('click', closeOverlay);
+
+  // F key or Escape also closes the popup
+  const keyHandler = (e) => {
+    if (e.code === 'KeyF' || e.code === 'Escape') {
+      closeOverlay();
+      document.removeEventListener('keydown', keyHandler);
+    }
+  };
+  document.addEventListener('keydown', keyHandler);
 
   return { overlay, closeBtn };
 }
