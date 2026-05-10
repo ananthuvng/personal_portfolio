@@ -2,68 +2,304 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ananthu V N G — Interactive 3D Portfolio World</title>
-  <meta name="description" content="Explore Ananthu V N G's portfolio in an immersive 3D world. Walk through interactive spaces showcasing projects, experience, and more.">
-  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-  <meta name="theme-color" content="#0a0a1a">
-
-  <!-- Open Graph / Social -->
-  <meta property="og:title" content="Ananthu V N G — Interactive 3D Portfolio">
-  <meta property="og:description" content="A walkable 3D world portfolio. Navigate a sci-fi environment to discover projects, experience, and more.">
+  <title>Ananthu V — Full-Stack Software Engineer</title>
+  <meta name="description" content="Portfolio of Ananthu V — Full-stack Software Engineer with 3+ years building scalable SaaS applications, AI-powered tooling, and cloud infrastructure.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#06060e">
+  <meta property="og:title" content="Ananthu V — Software Engineer Portfolio">
+  <meta property="og:description" content="Full-stack engineer specialising in event-driven integrations, AI developer tooling, and cloud infrastructure.">
   <meta property="og:type" content="website">
-
-  <link rel="stylesheet" type="text/css" href="base.css">
+  <link rel="stylesheet" href="portfolio.css">
 </head>
 <body>
 
-  <!-- Welcome / Landing Screen -->
-  <div id="welcome-screen">
-    <div class="welcome-particles" id="welcome-particles"></div>
-    <div class="welcome-content">
-      <div class="welcome-badge">
-        <span class="dot"></span>
-        Portfolio
+  <!-- INTRO SPLASH -->
+  <div id="intro-splash">
+    <div class="splash-brand">
+      <div class="splash-name">Ananthu<span class="splash-accent">.dev</span></div>
+      <div class="splash-line"></div>
+      <div class="splash-tagline">Software Engineer · Creative Developer</div>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <a href="#" class="nav-logo">Ananthu.dev</a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="#about" onclick="closeMenu()">About</a></li>
+      <li><a href="#skills" onclick="closeMenu()">Skills</a></li>
+      <li><a href="#experience" onclick="closeMenu()">Experience</a></li>
+      <li><a href="#projects" onclick="closeMenu()">Projects</a></li>
+      <li><a href="#contact" onclick="closeMenu()">Contact</a></li>
+    </ul>
+    <a href="world.html" class="nav-cta">🌐 Enter 3D World</a>
+    <button class="mobile-menu-btn" id="menu-btn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge"><span class="dot"></span> Available for opportunities</div>
+      <h1 class="hero-name">Ananthu <span class="gradient">Vengassery</span></h1>
+      <p class="hero-tagline">Full-stack Software Engineer with 3+ years building scalable enterprise SaaS, AI-powered developer tooling, and cloud infrastructure. AWS Certified Cloud Practitioner.</p>
+      <div class="hero-buttons">
+        <a href="world.html" class="btn-primary">🌐 Explore 3D World <span>→</span></a>
+        <a href="./resources/pdfs/Resume.pdf" target="_blank" class="btn-secondary">📄 Download Resume</a>
       </div>
-      <h1 class="welcome-name">Ananthu</h1>
-      <p class="welcome-tagline">Step into my world — an immersive 3D space where you can walk, explore, and discover my work.</p>
-      <button class="welcome-enter-btn" id="enter-world-btn">
-        Enter World
-        <span class="arrow">→</span>
-      </button>
-      <p class="welcome-hint" id="welcome-hint">Best on desktop · Use WASD to move</p>
+    </div>
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <span>↓</span>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="about-grid">
+      <div class="reveal">
+        <p class="section-label">// About Me</p>
+        <h2 class="section-title">I build things for the web.</h2>
+        <p class="section-desc" style="margin-bottom:24px;">I'm a Full Stack Developer with expertise in React and NestJS, currently working as a Software Engineer at Ellucian Higher Education. With a creative mindset and strong problem-solving skills, I build innovative, scalable solutions that drive impact.</p>
+        <p style="color:var(--text-secondary);margin-bottom:32px;font-size:0.95rem;">Let's collaborate to bring your ideas to life with code that inspires and performs.</p>
+        <div class="about-stats">
+          <div class="stat"><div class="stat-number">3+</div><div class="stat-label">Years Exp</div></div>
+          <div class="stat"><div class="stat-number">8.9</div><div class="stat-label">CGPA</div></div>
+          <div class="stat"><div class="stat-number">AWS</div><div class="stat-label">Certified</div></div>
+        </div>
+      </div>
+      <div class="about-image-wrap reveal" style="background:linear-gradient(135deg,#0c0c1a 0%,#1a0a2e 100%);display:flex;align-items:center;justify-content:center;">
+        <div style="font-size:8rem;font-family:var(--font-heading);font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;user-select:none;">AV</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="section" id="skills">
+    <p class="section-label reveal">// Tech Stack</p>
+    <h2 class="section-title reveal">Technologies I work with</h2>
+    <p class="section-desc reveal">A comprehensive toolkit spanning frontend, backend, cloud, and AI-driven development.</p>
+    <div class="skills-grid">
+      <div class="skill-card reveal">
+        <div class="skill-icon">⚡</div>
+        <h3 class="skill-title">Languages</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">JavaScript</span><span class="skill-tag">TypeScript</span>
+          <span class="skill-tag">Python</span><span class="skill-tag">Java</span>
+          <span class="skill-tag">SQL</span><span class="skill-tag">HTML/CSS</span>
+          <span class="skill-tag">C/C++</span><span class="skill-tag">Dart</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-icon">🧩</div>
+        <h3 class="skill-title">Frameworks</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">React</span><span class="skill-tag">NestJS</span>
+          <span class="skill-tag">Node.js</span><span class="skill-tag">Next.js</span>
+          <span class="skill-tag">Flutter</span><span class="skill-tag">Material-UI</span>
+          <span class="skill-tag">.NET</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-icon">☁️</div>
+        <h3 class="skill-title">Cloud & DevOps</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">AWS</span><span class="skill-tag">CI/CD</span>
+          <span class="skill-tag">S3</span><span class="skill-tag">ECS</span>
+          <span class="skill-tag">Datadog</span><span class="skill-tag">Docker</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-icon">🤖</div>
+        <h3 class="skill-title">AI & Tooling</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">MCP Server Dev</span><span class="skill-tag">GitHub Copilot</span>
+          <span class="skill-tag">RPA (Playwright)</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-icon">🗄️</div>
+        <h3 class="skill-title">Data & APIs</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">PostgreSQL</span><span class="skill-tag">MySQL</span>
+          <span class="skill-tag">Redis</span><span class="skill-tag">Valkey</span>
+          <span class="skill-tag">GraphQL</span><span class="skill-tag">REST</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-icon">🛡️</div>
+        <h3 class="skill-title">Testing & Security</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Jest</span><span class="skill-tag">Playwright</span>
+          <span class="skill-tag">SonarQube</span><span class="skill-tag">Snyk</span>
+          <span class="skill-tag">Checkmarx</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section class="section" id="experience">
+    <p class="section-label reveal">// Experience</p>
+    <h2 class="section-title reveal">Where I've worked</h2>
+    <p class="section-desc reveal">My professional journey building scalable enterprise software.</p>
+    <div class="timeline">
+      <div class="timeline-item reveal">
+        <div class="timeline-date">July 2024 — Present</div>
+        <h3 class="timeline-role">Software Engineer II</h3>
+        <p class="timeline-company">Ellucian Higher Education Systems · Remote</p>
+        <ul class="timeline-points">
+          <li>Built and shipped major UI features including a drag-and-drop file importer (XML, JSON, Excel), student self-service portal, and campus management workflows.</li>
+          <li>Implemented RPA workflow using Playwright to automate government web portal interactions — handling form submissions and data retrieval.</li>
+          <li>Built an MCP server integrated with GitHub Copilot that generates production-ready UI code from legacy screenshots, accelerating frontend development across teams.</li>
+          <li>Designed ECS-level observability dashboard in Datadog; remediated security vulnerabilities across SonarQube, Snyk, and Checkmarx.</li>
+          <li>Contributed to DevOps pipelines including S3 bucket consolidation and CI/CD troubleshooting.</li>
+        </ul>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-date">July 2023 — July 2024</div>
+        <h3 class="timeline-role">Software Engineer I</h3>
+        <p class="timeline-company">Ellucian Higher Education Systems · Remote</p>
+        <ul class="timeline-points">
+          <li>Designed and developed 3+ scalable backend services using NestJS, TypeScript, and PostgreSQL.</li>
+          <li>Created a reusable React component for dynamic, JSON-configurable forms, reducing dev time and ensuring consistency.</li>
+          <li>Implemented Redis caching for infrequently changing items, then migrated to Valkey — reducing latency and cost.</li>
+          <li>Increased front-end test coverage to over 85% and automated UI testing with Playwright.</li>
+        </ul>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-date">July 2021 — Aug 2021</div>
+        <h3 class="timeline-role">Android App Developer Intern</h3>
+        <p class="timeline-company">CISCO Thingqbator</p>
+        <ul class="timeline-points">
+          <li>Developed a travel-focused Android app for an early-stage startup as part of a Cisco Thingqbator hackathon, using Flutter and Firebase.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="section" id="projects">
+    <p class="section-label reveal">// Projects</p>
+    <h2 class="section-title reveal">Things I've built</h2>
+    <p class="section-desc reveal">A selection of side projects and research work.</p>
+    <div class="projects-grid">
+      <div class="project-card reveal">
+        <img src="./resources/images/souls.png" alt="SOLE App" class="project-image" loading="lazy">
+        <div class="project-body">
+          <h3 class="project-title">SOLE — Social Video App</h3>
+          <p class="project-desc">Real-time video conferencing app connecting users with shared interests globally. Users create topic-based rooms for meaningful conversations.</p>
+          <div class="project-tech">
+            <span>Flutter</span><span>Agora SDK</span><span>Firebase</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-card reveal">
+        <img src="./resources/images/sanchari.png" alt="Sanchari App" class="project-image" loading="lazy">
+        <div class="project-body">
+          <h3 class="project-title">Sanchari — Travel Companion</h3>
+          <p class="project-desc">A travel companion app with trip planning, weather forecasts, emergency SOS features, and friend location sharing via Google Maps integration.</p>
+          <div class="project-tech">
+            <span>Flutter</span><span>Google Maps</span><span>Firebase</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-card reveal">
+        <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#0d0d2b,#1a0a2e);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);">
+          <span style="font-size:3rem;">🧠</span>
+        </div>
+        <div class="project-body">
+          <h3 class="project-title">EMG Interface for SCI Patients</h3>
+          <p class="project-desc">ML-powered wheelchair control system for spinal cord injury patients using EMG-based hand gesture recognition. Published at IEEE ICCCNT 2023.</p>
+          <div class="project-tech">
+            <span>Python</span><span>Machine Learning</span><span>IEEE Published</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3D WORLD CTA -->
+  <div class="world-cta reveal">
+    <div class="world-cta-content">
+      <div class="world-cta-emoji">🌍</div>
+      <h2>Explore My Interactive 3D World</h2>
+      <p>Walk through an immersive 3D environment, discover my work, play games, and interact with my portfolio like never before.</p>
+      <a href="world.html" class="btn-primary" style="font-size:16px;">Enter the 3D World <span>→</span></a>
     </div>
   </div>
 
-  <!-- HUD Controls Hint -->
-  <div id="controls-hud" style="display:none;">
-    <div class="hud-row">
-      <div class="hud-key" id="hud-w">W</div>
+  <!-- CONTACT -->
+  <section class="section" id="contact">
+    <p class="section-label reveal">// Contact</p>
+    <h2 class="section-title reveal">Let's connect</h2>
+    <p class="section-desc reveal">Feel free to reach out for collaborations or just a friendly chat.</p>
+    <div class="contact-grid">
+      <a href="mailto:pk.ananthuvngmkd@gmail.com" class="contact-card reveal">
+        <div class="contact-icon">✉️</div>
+        <div class="contact-label">Email</div>
+        <div class="contact-value">pk.ananthuvngmkd@gmail.com</div>
+      </a>
+      <a href="https://github.com/ananthuvng" target="_blank" class="contact-card reveal">
+        <div class="contact-icon">🐙</div>
+        <div class="contact-label">GitHub</div>
+        <div class="contact-value">github.com/ananthuvng</div>
+      </a>
+      <a href="https://linkedin.com/in/ananthuvng" target="_blank" class="contact-card reveal">
+        <div class="contact-icon">💼</div>
+        <div class="contact-label">LinkedIn</div>
+        <div class="contact-value">linkedin.com/in/ananthuvng</div>
+      </a>
+      <a href="tel:+918606094405" class="contact-card reveal">
+        <div class="contact-icon">📱</div>
+        <div class="contact-label">Phone</div>
+        <div class="contact-value">+91 86060 94405</div>
+      </a>
     </div>
-    <div class="hud-row">
-      <div class="hud-key" id="hud-a">A</div>
-      <div class="hud-key" id="hud-s">S</div>
-      <div class="hud-key" id="hud-d">D</div>
-    </div>
-    <div class="hud-row">
-      <div class="hud-key wide" id="hud-shift">Shift</div>
-    </div>
-    <div class="hud-label">Move · Hold Shift to run</div>
-  </div>
+  </section>
 
-  <!-- Mobile Virtual Joystick -->
-  <div id="mobile-joystick">
-    <div class="joystick-base" id="joystick-base">
-      <div class="joystick-stick" id="joystick-stick"></div>
-    </div>
-  </div>
-  <button id="mobile-interact-btn">TAP</button>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>Designed & built by Ananthu V · © 2026</p>
+  </footer>
 
-  <!-- Mobile Crosshair -->
-  <div id="mobile-crosshair"></div>
+  <script>
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('menu-btn');
+    const navLinks = document.getElementById('nav-links');
+    menuBtn.addEventListener('click', () => {
+      menuBtn.classList.toggle('active');
+      navLinks.classList.toggle('open');
+    });
+    function closeMenu() {
+      menuBtn.classList.remove('active');
+      navLinks.classList.remove('open');
+    }
 
-  <!-- Interaction Prompt -->
-  <div id="interaction-prompt">Click to interact</div>
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('navbar');
+      nav.style.padding = window.scrollY > 50 ? '10px 40px' : '16px 40px';
+    });
 
-  <script src="./main.js" type="module"></script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    // ===== INTRO SPLASH =====
+    const splash = document.getElementById('intro-splash');
+    if (splash) {
+      setTimeout(() => {
+        splash.classList.add('fade-out');
+        setTimeout(() => splash.remove(), 800);
+      }, 2200);
+    }
+  </script>
 </body>
 </html>

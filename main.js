@@ -6,6 +6,7 @@ import {
   _updateLoadingProgress,
 } from './loading.js';
 import { sliderShow } from './showPages.js';
+import { showAboutPage, showExperiencePage, showProjectsPage, showBlogPage } from './contentPages.js';
 import { startSpaceShooterGame } from './game.js';
 import {
   checkIntersection,
@@ -512,7 +513,7 @@ class BasicCharacterController {
       );
       if (isAboutClicked) {
         this._onaAnotherWindow = true;
-        sliderShow(this, ['./resources/images/about.png']);
+        showAboutPage(this);
       } else if (isTableClicked) {
         this._onaAnotherWindow = true;
         createModernDesktop(this);
@@ -521,24 +522,16 @@ class BasicCharacterController {
         showCredits(this, credits);
       } else if (isBlogClicked) {
         this._onaAnotherWindow = true;
-        sliderShow(this, ['./resources/images/blogs.png']);
+        showBlogPage(this);
       } else if (isGamingClicked) {
         this._onaAnotherWindow = true;
         startSpaceShooterGame(this);
       } else if (isExperienceClicked) {
         this._onaAnotherWindow = true;
-        sliderShow(this, [
-          './resources/images/experince.png',
-          './resources/images/ellucian.png',
-          './resources/images/cisco.png',
-        ]);
+        showExperiencePage(this);
       } else if (isProjectClicked) {
         this._onaAnotherWindow = true;
-        sliderShow(this, [
-          './resources/images/projects.png',
-          './resources/images/souls.png',
-          './resources/images/sanchari.png',
-        ]);
+        showProjectsPage(this);
       } else if (isInstructionClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, ['./resources/images/instruction.png']);

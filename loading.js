@@ -18,9 +18,22 @@ export const _showLoadingScreen = () => {
     loadingScreen = document.createElement('div');
     loadingScreen.id = 'loading-screen';
 
-    const spinner = document.createElement('div');
-    spinner.className = 'loading-spinner';
+    // --- Animated brand logo ---
+    const brand = document.createElement('div');
+    brand.className = 'loading-brand';
 
+    const brandName = document.createElement('div');
+    brandName.className = 'loading-brand-name';
+    brandName.innerHTML = 'Ananthu<span class="brand-accent">.dev</span>';
+
+    const brandTagline = document.createElement('div');
+    brandTagline.className = 'loading-brand-tagline';
+    brandTagline.textContent = 'Interactive 3D Portfolio';
+
+    brand.appendChild(brandName);
+    brand.appendChild(brandTagline);
+
+    // --- Loading container ---
     const container = document.createElement('div');
     container.className = 'loading-container';
 
@@ -50,7 +63,7 @@ export const _showLoadingScreen = () => {
     container.appendChild(percentText);
     container.appendChild(tip);
 
-    loadingScreen.appendChild(spinner);
+    loadingScreen.appendChild(brand);
     loadingScreen.appendChild(container);
     document.body.appendChild(loadingScreen);
 
