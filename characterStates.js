@@ -89,10 +89,20 @@ export class WalkState extends State {
   Exit() {}
 
   Update(timeElapsed, input) {
-    if (input._keys.forward || input._keys.backward || input._keys.left || input._keys.right || input._keys.moveLeft || input._keys.moveRight) {
+    // Check if still moving forward/backward
+    if (input._keys.forward || input._keys.backward) {
       if (input._keys.shift) {
         this._parent.SetState('run');
       }
+      return;
+    }
+    // Switch to strafe animations if only strafing
+    if (input._keys.left || input._keys.moveLeft) {
+      this._parent.SetState('walkleft');
+      return;
+    }
+    if (input._keys.right || input._keys.moveRight) {
+      this._parent.SetState('walkright');
       return;
     }
 
@@ -221,10 +231,14 @@ export class IdleState extends State {
   Exit() {}
 
   Update(_, input) {
-    if (input._keys.forward || input._keys.left || input._keys.right || input._keys.moveLeft || input._keys.moveRight) {
+    if (input._keys.forward) {
       this._parent.SetState('walk');
     } else if (input._keys.backward) {
       this._parent.SetState('walkback');
+    } else if (input._keys.left || input._keys.moveLeft) {
+      this._parent.SetState('walkleft');
+    } else if (input._keys.right || input._keys.moveRight) {
+      this._parent.SetState('walkright');
     } else if (input._keys.space) {
       this._parent.SetState('dance');
     }
@@ -257,7 +271,11 @@ export class WalkLeftState extends State {
   Exit() {}
 
   Update(timeElapsed, input) {
-    if (!input._keys.moveLeft) {
+    if (input._keys.forward) {
+      this._parent.SetState('walk');
+      return;
+    }
+    if (!input._keys.moveLeft && !input._keys.left) {
       this._parent.SetState('idle');
     }
   }
@@ -290,7 +308,11 @@ export class WalkRightState extends State {
   Exit() {}
 
   Update(timeElapsed, input) {
-    if (!input._keys.moveRight) {
+    if (input._keys.forward) {
+      this._parent.SetState('walk');
+      return;
+    }
+    if (!input._keys.moveRight && !input._keys.right) {
       this._parent.SetState('idle');
     }
   }
