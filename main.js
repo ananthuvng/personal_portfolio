@@ -699,13 +699,13 @@ class BasicCharacterController {
     sideways.applyQuaternion(cameraQuat);
     sideways.normalize();
 
-    // Rotate character to face movement direction (GTA-style)
-    const isMoving = this._input._keys.forward || this._input._keys.backward ||
-      this._input._keys.left || this._input._keys.right ||
+    // Rotate character to face the right direction
+    const isMovingForwardBack = this._input._keys.forward || this._input._keys.backward;
+    const isStrafing = this._input._keys.left || this._input._keys.right ||
       this._input._keys.moveLeft || this._input._keys.moveRight;
 
-    if (isMoving) {
-      // Calculate desired facing direction from input
+    if (isMovingForwardBack) {
+      // When moving forward/backward, face the movement direction (GTA-style)
       let moveDir = new THREE.Vector3(0, 0, 0);
       if (this._input._keys.forward) moveDir.add(forward);
       if (this._input._keys.backward) moveDir.sub(forward);
@@ -717,9 +717,14 @@ class BasicCharacterController {
         const targetAngle = Math.atan2(moveDir.x, moveDir.z);
         const targetQuat = new THREE.Quaternion();
         targetQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), targetAngle);
-        // Smooth rotation towards movement direction
         controlObject.quaternion.slerp(targetQuat, 0.15);
       }
+    } else if (isStrafing) {
+      // When ONLY strafing (A/D), face camera forward so strafe animations look correct
+      const faceAngle = Math.atan2(forward.x, forward.z);
+      const faceQuat = new THREE.Quaternion();
+      faceQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), faceAngle);
+      controlObject.quaternion.slerp(faceQuat, 0.15);
     }
 
     // Move the character
