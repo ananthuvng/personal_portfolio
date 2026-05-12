@@ -521,7 +521,7 @@ class BasicCharacterController {
       
       // Reset car to origin
       this._car.position.set(-15, 0, -190);
-      this._car.rotation.set(0, -Math.PI / 2, 0);
+      this._car.rotation.y = -Math.PI / 2;
     } else {
       // Normal exit: Place character beside the car
       const carPos = this._car.position.clone();
