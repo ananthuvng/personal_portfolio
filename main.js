@@ -282,7 +282,7 @@ class BasicCharacterController {
       });
 
       fbx.scale.setScalar(0.048);
-      fbx.position.set(-17, -4, -155);
+      fbx.position.set(-17, -4, -150);
       this._params.scene.add(fbx);
     });
 
@@ -296,7 +296,7 @@ class BasicCharacterController {
         }
       });
       fbx.scale.setScalar(12.0);
-      fbx.position.set(-15, 0, -180);
+      fbx.position.set(-15, 0, -190);
       fbx.rotation.y = -Math.PI / 2;
       this._car = fbx;
       this._params.scene.add(fbx);
@@ -512,13 +512,26 @@ class BasicCharacterController {
     if (!this._car || !this._target) return;
     this._isDriving = false;
     this._carSpeed = 0;
-    // Place character beside the car
-    const carPos = this._car.position.clone();
-    const exitOffset = new THREE.Vector3(18, 0, 0);
-    exitOffset.applyQuaternion(this._car.quaternion);
-    this._target.position.copy(carPos.add(exitOffset));
+
+    // Check if the car was driven to the platform
+    if (this._car.position.z > -100) {
+      // Teleport character onto the platform
+      this._target.position.set(-15, 0, -80);
+      this._position.copy(this._target.position);
+      
+      // Reset car to origin
+      this._car.position.set(-15, 0, -190);
+      this._car.rotation.set(0, -Math.PI / 2, 0);
+    } else {
+      // Normal exit: Place character beside the car
+      const carPos = this._car.position.clone();
+      const exitOffset = new THREE.Vector3(18, 0, 0);
+      exitOffset.applyQuaternion(this._car.quaternion);
+      this._target.position.copy(carPos.add(exitOffset));
+      this._position.copy(this._target.position);
+    }
+
     this._target.visible = true;
-    this._position.copy(this._target.position);
     if (this._interactPrompt) {
       this._interactPrompt.style.display = 'none';
     }
@@ -619,9 +632,11 @@ class BasicCharacterController {
     if (this._interactPrompt) {
       if (nearest) {
         const isMobile = 'ontouchstart' in window;
-        this._interactPrompt.textContent = isMobile
-          ? `Tap to open ${nearest.label}`
-          : `Press F — ${nearest.label}`;
+        if (nearest.isCar) {
+          this._interactPrompt.textContent = isMobile ? `Tap to ${nearest.label}` : `Press F — ${nearest.label}`;
+        } else {
+          this._interactPrompt.textContent = isMobile ? `Tap to open ${nearest.label}` : `Press F — ${nearest.label}`;
+        }
         this._interactPrompt.style.display = 'block';
       } else {
         this._interactPrompt.style.display = 'none';
@@ -709,6 +724,10 @@ class BasicCharacterController {
       const isInstructionClicked = intersects.some((intersect) =>
         isDescendantOf(intersect.object, this._instruction),
       );
+      const isCarClicked = this._car ? intersects.some((intersect) =>
+        isDescendantOf(intersect.object, this._car),
+      ) : false;
+
       if (isAboutClicked) {
         this._onaAnotherWindow = true;
         showAboutPage(this);
@@ -733,6 +752,13 @@ class BasicCharacterController {
       } else if (isInstructionClicked) {
         this._onaAnotherWindow = true;
         sliderShow(this, ['./resources/images/instruction.png']);
+      } else if (isCarClicked) {
+        if (this._isDriving) {
+          this._ExitCar();
+        } else if (this._nearestInteractable && this._nearestInteractable.isCar) {
+          // Only enter if near the car
+          this._EnterCar();
+        }
       }
     }
   }
