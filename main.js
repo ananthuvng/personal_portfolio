@@ -285,6 +285,22 @@ class BasicCharacterController {
       fbx.position.set(-17, -4, -155);
       this._params.scene.add(fbx);
     });
+
+    // ===== DRIVABLE CAR =====
+    loader.load('car.fbx', (fbx) => {
+      fbx.traverse((c) => {
+        c.castShadow = true;
+        if (c.material) {
+          c.material.transparent = true;
+          c.material.opacity = 1.0;
+        }
+      });
+      fbx.scale.setScalar(12.0);
+      fbx.position.set(-15, 0, -180);
+      fbx.rotation.y = -Math.PI / 2;
+      this._car = fbx;
+      this._params.scene.add(fbx);
+    });
     loader.load('scififence.fbx', (fbx) => {
       fbx.traverse((c) => {
         c.castShadow = true;
@@ -433,17 +449,34 @@ class BasicCharacterController {
     this._nearestInteractable = null;
     this._interactPrompt = document.getElementById('interaction-prompt');
 
-    // F key to interact
+    // ===== DRIVING STATE =====
+    this._isDriving = false;
+    this._carSpeed = 0;
+    this._carSteer = 0;
+
+    // F key to interact / enter-exit car
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyF' && this._nearestInteractable && !this._onaAnotherWindow) {
-        this._TriggerInteraction(this._nearestInteractable);
+      if (e.code === 'KeyF') {
+        // If currently driving, exit the car
+        if (this._isDriving) {
+          this._ExitCar();
+          return;
+        }
+        // If near an interactable and not in a window
+        if (this._nearestInteractable && !this._onaAnotherWindow) {
+          if (this._nearestInteractable.isCar) {
+            this._EnterCar();
+          } else {
+            this._TriggerInteraction(this._nearestInteractable);
+          }
+        }
       }
     });
   }
 
-  _SetupInteractables() {
-    // Called once all models are loaded to register interactable objects
-    this._interactables = [
+  _GetInteractables() {
+    // Generate the list of interactables dynamically so async loaded objects are included
+    return [
       { obj: this._about, label: 'About', range: 45, action: () => showAboutPage(this) },
       { obj: this._experience, label: 'Experience', range: 45, action: () => showExperiencePage(this) },
       { obj: this._project, label: 'Projects', range: 45, action: () => showProjectsPage(this) },
@@ -452,7 +485,105 @@ class BasicCharacterController {
       { obj: this._gaming, label: 'Arcade', range: 30, action: () => startSpaceShooterGame(this) },
       { obj: this._credits, label: 'Credits', range: 30, action: () => showCredits(this, credits) },
       { obj: this._instruction, label: 'Instructions', range: 30, action: () => sliderShow(this, ['./resources/images/instruction.png']) },
+      { obj: this._car, label: 'Enter Car', range: 50, isCar: true },
     ].filter(i => i.obj); // only include loaded objects
+  }
+
+  _EnterCar() {
+    if (!this._car || !this._target) return;
+    this._isDriving = true;
+    this._carSpeed = 0;
+    this._carSteer = 0;
+    // Hide the character
+    this._target.visible = false;
+    // Stop walking sound
+    if (this._walkingSound && this._walkingSound.isPlaying) {
+      this._walkingSound.stop();
+    }
+    // Show driving hint
+    if (this._interactPrompt) {
+      const isMobile = 'ontouchstart' in window;
+      this._interactPrompt.textContent = isMobile ? 'Tap to exit car' : 'Press F to exit · WASD to drive';
+      this._interactPrompt.style.display = 'block';
+    }
+  }
+
+  _ExitCar() {
+    if (!this._car || !this._target) return;
+    this._isDriving = false;
+    this._carSpeed = 0;
+    // Place character beside the car
+    const carPos = this._car.position.clone();
+    const exitOffset = new THREE.Vector3(18, 0, 0);
+    exitOffset.applyQuaternion(this._car.quaternion);
+    this._target.position.copy(carPos.add(exitOffset));
+    this._target.visible = true;
+    this._position.copy(this._target.position);
+    if (this._interactPrompt) {
+      this._interactPrompt.style.display = 'none';
+    }
+  }
+
+  _UpdateDriving(timeInSeconds) {
+    if (!this._isDriving || !this._car) return;
+
+    const input = this._input;
+    const maxSpeed = 300;
+    const acceleration = 180;
+    const brakeForce = 200;
+    const friction = 35;
+    const steerSpeed = 3.2;
+
+    // Acceleration / braking
+    if (input._keys.forward) {
+      this._carSpeed += acceleration * timeInSeconds;
+    } else if (input._keys.backward) {
+      this._carSpeed -= brakeForce * timeInSeconds;
+    } else {
+      // Natural friction
+      if (Math.abs(this._carSpeed) < friction * timeInSeconds) {
+        this._carSpeed = 0;
+      } else {
+        this._carSpeed -= Math.sign(this._carSpeed) * friction * timeInSeconds;
+      }
+    }
+
+    // Clamp speed
+    this._carSpeed = Math.max(-maxSpeed * 0.4, Math.min(maxSpeed, this._carSpeed));
+
+    // Steering (only when moving)
+    if (Math.abs(this._carSpeed) > 1) {
+      if (input._keys.left) {
+        this._car.rotation.y -= steerSpeed * timeInSeconds * Math.sign(this._carSpeed);
+      }
+      if (input._keys.right) {
+        this._car.rotation.y += steerSpeed * timeInSeconds * Math.sign(this._carSpeed);
+      }
+    }
+
+    const oldCarPos = this._car.position.clone();
+
+    // Move car forward in its facing direction
+    const carForward = new THREE.Vector3(0, 0, -1);
+    carForward.applyQuaternion(this._car.quaternion);
+    carForward.multiplyScalar(this._carSpeed * timeInSeconds);
+    this._car.position.add(carForward);
+
+    // Car Collision Detection
+    const carBoxSize = 25;
+    const carBBox = new THREE.Box3(
+      new THREE.Vector3(this._car.position.x - carBoxSize / 2, -10, this._car.position.z - carBoxSize / 2),
+      new THREE.Vector3(this._car.position.x + carBoxSize / 2, 20, this._car.position.z + carBoxSize / 2)
+    );
+    const colliders = [...this._fence, ...this._objects];
+    if (colliders.some((c) => c.intersectsBox(carBBox))) {
+      this._car.position.copy(oldCarPos);
+      this._carSpeed = 0;
+    }
+
+    // Keep character position synced so camera follows the car
+    this._position.copy(this._car.position);
+    this._target.position.copy(this._car.position);
   }
 
   _TriggerInteraction(interactable) {
@@ -461,21 +592,18 @@ class BasicCharacterController {
   }
 
   _CheckProximity() {
-    if (!this._target || this._onaAnotherWindow) {
-      if (this._interactPrompt) this._interactPrompt.style.display = 'none';
+    if (!this._target || this._onaAnotherWindow || this._isDriving) {
+      if (this._interactPrompt && !this._isDriving) this._interactPrompt.style.display = 'none';
       return;
     }
 
-    // Lazy-initialize interactables list
-    if (this._interactables.length === 0) {
-      this._SetupInteractables();
-    }
+    const interactables = this._GetInteractables();
 
     const playerPos = this._target.position;
     let nearest = null;
     let nearestDist = Infinity;
 
-    for (const item of this._interactables) {
+    for (const item of interactables) {
       if (!item.obj) continue;
       const objPos = new THREE.Vector3();
       item.obj.getWorldPosition(objPos);
@@ -614,6 +742,9 @@ class BasicCharacterController {
   }
 
   get Rotation() {
+    if (this._isDriving && this._car) {
+      return this._car.quaternion;
+    }
     if (!this._target) {
       return new THREE.Quaternion();
     }
@@ -621,6 +752,12 @@ class BasicCharacterController {
   }
 
   Update(timeInSeconds) {
+    // ===== DRIVING MODE =====
+    if (this._isDriving) {
+      this._UpdateDriving(timeInSeconds);
+      return;
+    }
+
     if (!this._stateMachine._currentState || this._onaAnotherWindow) {
       if (this._walkingSound && this._walkingSound.isPlaying) {
         this._walkingSound.stop();
@@ -756,6 +893,14 @@ class BasicCharacterController {
     );
 
     const allColliders = [...this._fence, ...this._objects];
+    if (this._car && !this._isDriving) {
+      const carBoxSize = 20;
+      const carBBox = new THREE.Box3(
+        new THREE.Vector3(this._car.position.x - carBoxSize / 2, -10, this._car.position.z - carBoxSize / 2),
+        new THREE.Vector3(this._car.position.x + carBoxSize / 2, 20, this._car.position.z + carBoxSize / 2)
+      );
+      allColliders.push({ intersectsBox: (box) => box.intersectsBox(carBBox) });
+    }
     const collidesAfterMove = allColliders.some((c) => c.intersectsBox(newBBox));
 
     if (collidesAfterMove) {

@@ -97,11 +97,16 @@ export class ThirdPersonCamera {
 
   _CalculateIdealOffset() {
     const targetPos = this._params.target.Position;
+    const isDriving = this._params.target._isDriving;
+    
+    // Higher and further back when driving
+    const dist = isDriving ? 70 : this._distance;
+    const height = isDriving ? 25 : 10;
 
     // Spherical coordinates around the character
-    const x = this._distance * Math.sin(this._pitch) * Math.sin(this._yaw);
-    const y = this._distance * Math.cos(this._pitch) + 10; // +10 to keep above ground
-    const z = this._distance * Math.sin(this._pitch) * Math.cos(this._yaw);
+    const x = dist * Math.sin(this._pitch) * Math.sin(this._yaw);
+    const y = dist * Math.cos(this._pitch) + height; 
+    const z = dist * Math.sin(this._pitch) * Math.cos(this._yaw);
 
     return new THREE.Vector3(
       targetPos.x + x,
@@ -112,10 +117,30 @@ export class ThirdPersonCamera {
 
   _CalculateIdealLookat() {
     const targetPos = this._params.target.Position;
-    return new THREE.Vector3(targetPos.x, targetPos.y + 10, targetPos.z);
+    const isDriving = this._params.target._isDriving;
+    const lookHeight = isDriving ? 15 : 10;
+    return new THREE.Vector3(targetPos.x, targetPos.y + lookHeight, targetPos.z);
   }
 
   Update(timeElapsed) {
+    const isDriving = this._params.target && this._params.target._isDriving;
+    
+    if (isDriving) {
+      const carQuat = this._params.target.Rotation;
+      const euler = new THREE.Euler().setFromQuaternion(carQuat, 'YXZ');
+      
+      // Calculate shortest angular distance to the car's back
+      let diff = euler.y - this._yaw;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      
+      // Auto-align camera yaw behind the car while moving
+      const speed = this._params.target._carSpeed || 0;
+      if (Math.abs(speed) > 5) {
+        this._yaw += diff * 2.5 * timeElapsed;
+      }
+    }
+
     const idealOffset = this._CalculateIdealOffset();
     const idealLookat = this._CalculateIdealLookat();
     const t = 1.0 - Math.pow(0.001, timeElapsed);
