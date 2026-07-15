@@ -90,6 +90,11 @@ export function showCredits(
     }
     setTimeout(() => {
       document.body.removeChild(popup);
+      const canvas = document.querySelector('canvas');
+      if (canvas && !('ontouchstart' in window)) {
+        canvas.requestPointerLock();
+      }
+      document.body.style.cursor = '';
     }, 300);
   };
 
@@ -99,6 +104,10 @@ export function showCredits(
   });
 
   creditsContainer.appendChild(closeButton);
+  if (!('ontouchstart' in window) && document.pointerLockElement) {
+    document.exitPointerLock();
+  }
+  document.body.style.cursor = 'default';
   popup.appendChild(creditsContainer);
   document.body.appendChild(popup);
 

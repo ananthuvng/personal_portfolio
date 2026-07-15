@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Ananthu V — Full-Stack Software Engineer</title>
-  <meta name="description" content="Portfolio of Ananthu V — Full-stack Software Engineer with 3+ years building scalable SaaS applications, AI-powered tooling, and cloud infrastructure.">
+  <meta name="description" content="Full-stack Software Engineer who turns complex integration problems into shipped, reliable features — 3+ years building enterprise SaaS for the higher-education sector.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#06060e">
   <meta property="og:title" content="Ananthu V — Software Engineer Portfolio">
-  <meta property="og:description" content="Full-stack engineer specialising in event-driven integrations, AI developer tooling, and cloud infrastructure.">
+  <meta property="og:description" content="Full-stack Software Engineer focused on event-driven integrations, AI-powered developer tooling, and cloud infrastructure.">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="portfolio.css">
 </head>
@@ -32,7 +32,7 @@
       <li><a href="#projects" onclick="closeMenu()">Projects</a></li>
       <li><a href="#contact" onclick="closeMenu()">Contact</a></li>
     </ul>
-    <a href="world.html" class="nav-cta">🌐 Enter 3D World</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️ Light</button>
     <button class="mobile-menu-btn" id="menu-btn" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>
@@ -43,7 +43,7 @@
     <div class="hero-content">
       <div class="hero-badge"><span class="dot"></span> Available for opportunities</div>
       <h1 class="hero-name">Ananthu <span class="gradient">Vengassery</span></h1>
-      <p class="hero-tagline">Full-stack Software Engineer with 3+ years building scalable enterprise SaaS, AI-powered developer tooling, and cloud infrastructure. AWS Certified Cloud Practitioner.</p>
+      <p class="hero-tagline">Full-stack Software Engineer who turns complex integration problems into shipped, reliable features — 3+ years building enterprise SaaS for the higher-education sector. AWS Certified Cloud Practitioner.</p>
       <div class="hero-buttons">
         <a href="world.html" class="btn-primary">🌐 Explore 3D World <span>→</span></a>
         <a href="./resources/pdfs/Resume.pdf" target="_blank" class="btn-secondary">📄 Download Resume</a>
@@ -61,16 +61,16 @@
       <div class="reveal">
         <p class="section-label">// About Me</p>
         <h2 class="section-title">I build things for the web.</h2>
-        <p class="section-desc" style="margin-bottom:24px;">I'm a Full Stack Developer with expertise in React and NestJS, currently working as a Software Engineer at Ellucian Higher Education. With a creative mindset and strong problem-solving skills, I build innovative, scalable solutions that drive impact.</p>
-        <p style="color:var(--text-secondary);margin-bottom:32px;font-size:0.95rem;">Let's collaborate to bring your ideas to life with code that inspires and performs.</p>
+        <p class="section-desc" style="margin-bottom:24px;">I'm a Full Stack Developer with expertise in React and NestJS, currently working as a Software Engineer at Ellucian Higher Education Systems. I build enterprise SaaS for the higher-education sector, focused on event-driven third-party integrations, AI-powered developer tooling, and cloud infrastructure.</p>
+        <p style="color:var(--text-secondary);margin-bottom:32px;font-size:0.95rem;">AWS Certified Cloud Practitioner with a track record of shipping complex integrations, hardening reliability and security, and building internal tools that speed up delivery across teams.</p>
         <div class="about-stats">
           <div class="stat"><div class="stat-number">3+</div><div class="stat-label">Years Exp</div></div>
           <div class="stat"><div class="stat-number">8.9</div><div class="stat-label">CGPA</div></div>
           <div class="stat"><div class="stat-number">AWS</div><div class="stat-label">Certified</div></div>
         </div>
       </div>
-      <div class="about-image-wrap reveal" style="background:linear-gradient(135deg,#0c0c1a 0%,#1a0a2e 100%);display:flex;align-items:center;justify-content:center;">
-        <div style="font-size:8rem;font-family:var(--font-heading);font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;user-select:none;">AV</div>
+      <div class="about-image-wrap reveal">
+        <img src="./resources/images/mee.png" alt="Ananthu Vengassery portrait">
       </div>
     </div>
   </section>
@@ -123,7 +123,7 @@
         <h3 class="skill-title">Data & APIs</h3>
         <div class="skill-tags">
           <span class="skill-tag">PostgreSQL</span><span class="skill-tag">MySQL</span>
-          <span class="skill-tag">Redis</span><span class="skill-tag">Valkey</span>
+          <span class="skill-tag">Redis</span><span class="skill-tag">TypeORM</span>
           <span class="skill-tag">GraphQL</span><span class="skill-tag">REST</span>
         </div>
       </div>
@@ -150,11 +150,11 @@
         <h3 class="timeline-role">Software Engineer II</h3>
         <p class="timeline-company">Ellucian Higher Education Systems · Remote</p>
         <ul class="timeline-points">
-          <li>Built and shipped major UI features including a drag-and-drop file importer (XML, JSON, Excel), student self-service portal, and campus management workflows.</li>
-          <li>Implemented RPA workflow using Playwright to automate government web portal interactions — handling form submissions and data retrieval.</li>
-          <li>Built an MCP server integrated with GitHub Copilot that generates production-ready UI code from legacy screenshots, accelerating frontend development across teams.</li>
-          <li>Designed ECS-level observability dashboard in Datadog; remediated security vulnerabilities across SonarQube, Snyk, and Checkmarx.</li>
-          <li>Contributed to DevOps pipelines including S3 bucket consolidation and CI/CD troubleshooting.</li>
+          <li>Owned and served as the primary point of contact for major ERP-regulatory integrations such as SEVIS (US) and PRISMS (Australia), expanding the platform’s market reach.</li>
+          <li>Cut frontend development effort by 80% and improved AI-generated code accuracy by 90% with an MCP server integrated with GitHub Copilot that converts screenshots and user stories into production-ready UI code.</li>
+          <li>Eliminated manual data entry on an external portal by building a Playwright RPA workflow that automates form submissions and data retrieval as part of a core product feature.</li>
+          <li>Improved system observability and security by building an ECS-level monitoring dashboard in Datadog and remediating vulnerabilities flagged by SonarQube, Snyk, and Checkmarx.</li>
+          <li>Reduced front-end latency by 50% through React optimization, debouncing, and API-call caching while supporting CI/CD troubleshooting and hotfix delivery.</li>
         </ul>
       </div>
       <div class="timeline-item reveal">
@@ -162,10 +162,11 @@
         <h3 class="timeline-role">Software Engineer I</h3>
         <p class="timeline-company">Ellucian Higher Education Systems · Remote</p>
         <ul class="timeline-points">
-          <li>Designed and developed 3+ scalable backend services using NestJS, TypeScript, and PostgreSQL.</li>
-          <li>Created a reusable React component for dynamic, JSON-configurable forms, reducing dev time and ensuring consistency.</li>
-          <li>Implemented Redis caching for infrequently changing items, then migrated to Valkey — reducing latency and cost.</li>
-          <li>Increased front-end test coverage to over 85% and automated UI testing with Playwright.</li>
+          <li>Established front-end unit testing from scratch with Jest, driving coverage above 85% and strengthening application reliability.</li>
+          <li>Designed and built 5+ standalone backend systems using NestJS and GraphQL on a microservices architecture for independent development.</li>
+          <li>Slashed API latency by 50% for infrequently changing data with Redis caching in a reusable NestJS package, later migrating to Valkey to reduce infrastructure cost by 20%.</li>
+          <li>Reduced manual testing effort by 40% by automating UI test cases with Playwright and improving release quality.</li>
+          <li>Streamlined development time by building reusable React components, including a JSON-to-form module that dynamically renders forms from JSON schemas.</li>
         </ul>
       </div>
       <div class="timeline-item reveal">
@@ -189,7 +190,7 @@
         <img src="./resources/images/souls.png" alt="SOLE App" class="project-image" loading="lazy">
         <div class="project-body">
           <h3 class="project-title">SOLE — Social Video App</h3>
-          <p class="project-desc">Real-time video conferencing app connecting users with shared interests globally. Users create topic-based rooms for meaningful conversations.</p>
+          <p class="project-desc">A real-time video app connecting users with shared interests worldwide through topic-based rooms, built with Flutter, Agora SDK, and Firebase.</p>
           <div class="project-tech">
             <span>Flutter</span><span>Agora SDK</span><span>Firebase</span>
           </div>
@@ -210,8 +211,8 @@
           <span style="font-size:3rem;">🧠</span>
         </div>
         <div class="project-body">
-          <h3 class="project-title">EMG Interface for SCI Patients</h3>
-          <p class="project-desc">ML-powered wheelchair control system for spinal cord injury patients using EMG-based hand gesture recognition. Published at IEEE ICCCNT 2023.</p>
+          <h3 class="project-title">Electromyographic Interface for SCI Patients</h3>
+          <p class="project-desc">Enabled hands-free wheelchair control for spinal cord injury patients with an ML-powered EMG gesture recognition system, addressing cross-patient signal variation through robust classification.</p>
           <div class="project-tech">
             <span>Python</span><span>Machine Learning</span><span>IEEE Published</span>
           </div>
@@ -239,7 +240,7 @@
       <a href="mailto:pk.ananthuvngmkd@gmail.com" class="contact-card reveal">
         <div class="contact-icon">✉️</div>
         <div class="contact-label">Email</div>
-        <div class="contact-value">pk.ananthuvngmkd@gmail.com</div>
+        <div class="contact-value">ananthuvngmkd@gmail.com</div>
       </a>
       <a href="https://github.com/ananthuvng" target="_blank" class="contact-card reveal">
         <div class="contact-icon">🐙</div>
@@ -276,6 +277,31 @@
       menuBtn.classList.remove('active');
       navLinks.classList.remove('open');
     }
+
+    // Light / dark theme toggle
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    const THEME_KEY = 'portfolioTheme';
+
+    const setTheme = (theme) => {
+      if (theme === 'light') {
+        document.body.classList.add('light');
+        themeToggleBtn.textContent = '🌙 Dark';
+        themeMeta.content = '#f6f7fb';
+      } else {
+        document.body.classList.remove('light');
+        themeToggleBtn.textContent = '☀️ Light';
+        themeMeta.content = '#06060e';
+      }
+      localStorage.setItem(THEME_KEY, theme);
+    };
+
+    const storedTheme = localStorage.getItem(THEME_KEY);
+    setTheme(storedTheme === 'light' ? 'light' : 'dark');
+
+    themeToggleBtn.addEventListener('click', () => {
+      setTheme(document.body.classList.contains('light') ? 'dark' : 'light');
+    });
 
     // Navbar scroll effect
     window.addEventListener('scroll', () => {

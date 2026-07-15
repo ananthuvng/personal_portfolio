@@ -5,6 +5,23 @@
  */
 
 // ===== Shared helpers =====
+function unlockPointer() {
+  if ('ontouchstart' in window) return;
+  if (document.pointerLockElement) {
+    document.exitPointerLock();
+  }
+  document.body.style.cursor = 'default';
+}
+
+function lockPointer() {
+  if ('ontouchstart' in window) return;
+  const canvas = document.querySelector('canvas');
+  if (canvas) {
+    canvas.requestPointerLock();
+  }
+  document.body.style.cursor = '';
+}
+
 function createOverlay(windowStateManager) {
   const overlay = document.createElement('div');
   overlay.className = 'popup-overlay';
@@ -21,6 +38,7 @@ function createOverlay(windowStateManager) {
     transition: 'opacity 0.3s ease-in-out',
     overflow: 'auto',
     padding: '20px',
+    cursor: 'default',
   });
 
   const closeOverlay = () => {
@@ -28,11 +46,7 @@ function createOverlay(windowStateManager) {
     setTimeout(() => {
       if (document.body.contains(overlay)) document.body.removeChild(overlay);
       if (windowStateManager) windowStateManager._onaAnotherWindow = false;
-      // Re-engage pointer lock so mouse look resumes
-      const canvas = document.querySelector('canvas');
-      if (canvas && !('ontouchstart' in window)) {
-        canvas.requestPointerLock();
-      }
+      lockPointer();
     }, 300);
   };
 
@@ -76,6 +90,7 @@ function createContentContainer() {
 }
 
 function showPage(windowStateManager, container, closeBtn) {
+  unlockPointer();
   const { overlay } = createOverlay(windowStateManager);
   // Re-attach closeBtn logic to this overlay
   closeBtn.addEventListener('click', () => {
@@ -83,26 +98,35 @@ function showPage(windowStateManager, container, closeBtn) {
     setTimeout(() => {
       if (document.body.contains(overlay)) document.body.removeChild(overlay);
       if (windowStateManager) windowStateManager._onaAnotherWindow = false;
+      lockPointer();
     }, 300);
   });
   container.appendChild(closeBtn);
   overlay.appendChild(container);
   document.body.appendChild(overlay);
-  requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+  });
 }
 
 // ===== Shared CSS-in-JS styles =====
 const S = {
-  sectionLabel: 'font-family:"JetBrains Mono",monospace;font-size:12px;color:#26fffd;text-transform:uppercase;letter-spacing:3px;margin-bottom:8px;',
-  title: 'font-family:"Space Grotesk",sans-serif;font-size:2rem;font-weight:800;margin-bottom:16px;letter-spacing:-0.5px;',
-  subtitle: 'font-family:"Space Grotesk",sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:6px;',
+  sectionLabel:
+    'font-family:"JetBrains Mono",monospace;font-size:12px;color:#26fffd;text-transform:uppercase;letter-spacing:3px;margin-bottom:8px;',
+  title:
+    'font-family:"Space Grotesk",sans-serif;font-size:2rem;font-weight:800;margin-bottom:16px;letter-spacing:-0.5px;',
+  subtitle:
+    'font-family:"Space Grotesk",sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:6px;',
   body: 'color:rgba(240,240,245,0.75);font-size:0.95rem;line-height:1.75;margin-bottom:16px;',
   accent: 'color:#26fffd;',
-  divider: 'width:100%;height:1px;background:rgba(255,255,255,0.08);margin:28px 0;',
+  divider:
+    'width:100%;height:1px;background:rgba(255,255,255,0.08);margin:28px 0;',
   tag: 'display:inline-block;padding:4px 14px;border-radius:50px;font-size:12px;font-weight:500;background:rgba(38,255,253,0.1);border:1px solid rgba(38,255,253,0.15);color:#26fffd;margin:0 6px 6px 0;',
   card: 'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;margin-bottom:20px;',
-  timelineDate: 'font-family:"JetBrains Mono",monospace;font-size:12px;color:#26fffd;margin-bottom:6px;',
-  listItem: 'position:relative;padding-left:18px;margin-bottom:8px;color:rgba(240,240,245,0.75);font-size:0.9rem;line-height:1.65;',
+  timelineDate:
+    'font-family:"JetBrains Mono",monospace;font-size:12px;color:#26fffd;margin-bottom:6px;',
+  listItem:
+    'position:relative;padding-left:18px;margin-bottom:8px;color:rgba(240,240,245,0.75);font-size:0.9rem;line-height:1.65;',
 };
 
 // ===== ABOUT PAGE =====
@@ -117,11 +141,13 @@ export function showAboutPage(windowStateManager) {
     <h2 style="${S.title}">Hello, I'm <span style="${S.accent}">Ananthu Vengassery</span></h2>
     <p style="${S.body}">
       I'm a Full Stack Developer with expertise in React and NestJS, currently working as a 
-      Software Engineer at Ellucian Higher Education. With a creative mindset and strong 
-      problem-solving skills, I build innovative, scalable solutions that drive impact.
+      Software Engineer at Ellucian Higher Education Systems. I build enterprise SaaS for the 
+      higher-education sector, focused on event-driven integrations, AI-powered developer tooling, 
+      and cloud infrastructure.
     </p>
     <p style="${S.body}">
-      Let's collaborate to bring your ideas to life with code that inspires and performs.
+      AWS Certified Cloud Practitioner with a track record of shipping complex integrations, hardening 
+      system reliability and security, and building internal tools that speed up delivery across teams.
     </p>
     <div style="${S.divider}"></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;">
@@ -165,7 +191,9 @@ export function showAboutPage(windowStateManager) {
   container.appendChild(closeBtn);
   overlay.appendChild(container);
   document.body.appendChild(overlay);
-  requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+  });
 }
 
 // ===== EXPERIENCE PAGE =====
@@ -186,11 +214,11 @@ export function showExperiencePage(windowStateManager) {
       <h3 style="${S.subtitle}">Software Engineer II</h3>
       <p style="color:rgba(240,240,245,0.4);font-size:0.85rem;margin-bottom:14px;">Ellucian Higher Education Systems · Remote</p>
       <ul style="list-style:none;padding:0;margin:0;">
-        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Built and shipped major UI features including drag-and-drop file importer (XML, JSON, Excel), student self-service portal, and campus management workflows.</li>
-        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Implemented RPA workflow using Playwright to automate government web portal interactions.</li>
-        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Built an MCP server integrated with GitHub Copilot that generates production-ready UI code from legacy screenshots, accelerating frontend development.</li>
-        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Designed ECS-level observability dashboard in Datadog; remediated security vulnerabilities across SonarQube, Snyk, and Checkmarx.</li>
-        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Contributed to DevOps pipelines including S3 bucket consolidation and CI/CD troubleshooting.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Owned and served as the primary point of contact for major ERP-regulatory integrations such as SEVIS (US) and PRISMS (Australia), expanding the platform’s market reach.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Cut frontend development effort by 80% and improved AI-generated code accuracy by 90% with an MCP server integrated with GitHub Copilot that converts screenshots and user stories into production-ready UI code.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Eliminated manual data entry on an external portal by building a Playwright RPA workflow that automates form submissions and data retrieval as part of a core platform feature.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Improved system observability and security by building an ECS-level monitoring dashboard in Datadog and remediating vulnerabilities flagged by SonarQube, Snyk, and Checkmarx.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Reduced front-end latency by 50% through React optimization, debouncing, and API-call caching while supporting CI/CD troubleshooting and hotfix delivery.</li>
       </ul>
     </div>
 
@@ -199,10 +227,11 @@ export function showExperiencePage(windowStateManager) {
       <h3 style="${S.subtitle}">Software Engineer I</h3>
       <p style="color:rgba(240,240,245,0.4);font-size:0.85rem;margin-bottom:14px;">Ellucian Higher Education Systems · Remote</p>
       <ul style="list-style:none;padding:0;margin:0;">
-        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Designed and developed 3+ scalable backend services using NestJS, TypeScript, and PostgreSQL.</li>
-        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Created a reusable React component for dynamic, JSON-configurable forms, reducing dev time.</li>
-        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Implemented Redis caching, then migrated to Valkey — reducing latency and cost.</li>
-        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Increased front-end test coverage to over 85% and automated UI testing with Playwright.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Established front-end unit testing from scratch with Jest, driving coverage above 85% and strengthening application reliability.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Designed and built 5+ standalone backend systems using NestJS and GraphQL on a microservices architecture for independent development.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Slashed API latency by 50% for infrequently changing data with Redis caching in a reusable NestJS package, later migrating to Valkey to reduce infrastructure cost by 20%.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Reduced manual testing effort by 40% by automating UI test cases with Playwright and improving release quality.</li>
+        <li style="${S.listItem}"><span style="position:absolute;left:0;color:#26fffd;">▸</span>Streamlined development time by building reusable React components, including a JSON-to-form module that dynamically renders forms from JSON schemas.</li>
       </ul>
     </div>
 
@@ -234,7 +263,9 @@ export function showExperiencePage(windowStateManager) {
   container.appendChild(closeBtn);
   overlay.appendChild(container);
   document.body.appendChild(overlay);
-  requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+  });
 }
 
 // ===== PROJECTS PAGE =====
@@ -256,9 +287,7 @@ export function showProjectsPage(windowStateManager) {
         <h3 style="${S.subtitle}margin-bottom:0;">SOLE — Social Video App</h3>
       </div>
       <p style="${S.body}">
-        A video chat app where strangers from around the world can connect anonymously. 
-        Users create rooms with specific topics, so instead of random chats, you find 
-        and join video conversations that match your interests — movies, technology, or anything else.
+        A real-time video app connecting users with shared interests worldwide through topic-based rooms, built with Flutter, Agora SDK, and Firebase.
       </p>
       <div style="margin-bottom:14px;">
         <span style="${S.tag}">Flutter</span>
@@ -290,9 +319,7 @@ export function showProjectsPage(windowStateManager) {
         <h3 style="${S.subtitle}margin-bottom:0;">EMG Interface for SCI Patients</h3>
       </div>
       <p style="${S.body}">
-        ML-powered wheelchair control system for spinal cord injury patients using EMG-based 
-        hand gesture recognition. Addressed cross-patient signal variation via robust ML classification.
-        Published at IEEE ICCCNT 2023.
+        Enabled hands-free wheelchair control for spinal cord injury patients with an ML-powered EMG-based gesture recognition system, addressing cross-patient signal variation through robust classification. Published at IEEE ICCCNT 2023.
       </p>
       <div style="margin-bottom:14px;">
         <span style="${S.tag}">Python</span>
@@ -314,7 +341,9 @@ export function showProjectsPage(windowStateManager) {
   container.appendChild(closeBtn);
   overlay.appendChild(container);
   document.body.appendChild(overlay);
-  requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+  });
 }
 
 // ===== BLOG PAGE =====
@@ -383,5 +412,7 @@ export function showBlogPage(windowStateManager) {
   container.appendChild(closeBtn);
   overlay.appendChild(container);
   document.body.appendChild(overlay);
-  requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+  });
 }

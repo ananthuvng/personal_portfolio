@@ -351,7 +351,8 @@ export function createModernDesktop(windowStateManager) {
     width: '100%',
     height: '100%',
     backgroundColor: '#1a1a1a',
-    backgroundImage: 'linear-gradient(135deg, #1a1a1a 0%, #0d0d2b 50%, #1a0a2e 100%)',
+    backgroundImage:
+      'linear-gradient(135deg, #1a1a1a 0%, #0d0d2b 50%, #1a0a2e 100%)',
     overflow: 'hidden',
     opacity: '0',
     transform: 'scale(1.1)',
@@ -513,6 +514,10 @@ export function createModernDesktop(windowStateManager) {
     }, 300);
   });
 
+  if (!('ontouchstart' in window) && document.pointerLockElement) {
+    document.exitPointerLock();
+  }
+  document.body.style.cursor = 'default';
   container.appendChild(desktopArea);
   container.appendChild(taskbar.element);
   container.appendChild(closeButton);
@@ -529,5 +534,10 @@ export function createModernDesktop(windowStateManager) {
     if (document.body.contains(container)) {
       document.body.removeChild(container);
     }
+    const canvas = document.querySelector('canvas');
+    if (canvas && !('ontouchstart' in window)) {
+      canvas.requestPointerLock();
+    }
+    document.body.style.cursor = '';
   };
 }

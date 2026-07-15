@@ -6,7 +6,12 @@ import {
   _updateLoadingProgress,
 } from './loading.js';
 import { sliderShow } from './showPages.js';
-import { showAboutPage, showExperiencePage, showProjectsPage, showBlogPage } from './contentPages.js';
+import {
+  showAboutPage,
+  showExperiencePage,
+  showProjectsPage,
+  showBlogPage,
+} from './contentPages.js';
 import { startSpaceShooterGame } from './game.js';
 import {
   checkIntersection,
@@ -36,8 +41,12 @@ class BasicCharacterControllerProxy {
 
 // Mobile detection helper
 const _isMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+  return (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent,
+    ) ||
+    (navigator.maxTouchPoints && navigator.maxTouchPoints > 2)
+  );
 };
 
 class BasicCharacterController {
@@ -477,16 +486,56 @@ class BasicCharacterController {
   _GetInteractables() {
     // Generate the list of interactables dynamically so async loaded objects are included
     return [
-      { obj: this._about, label: 'About', range: 45, action: () => showAboutPage(this) },
-      { obj: this._experience, label: 'Experience', range: 45, action: () => showExperiencePage(this) },
-      { obj: this._project, label: 'Projects', range: 45, action: () => showProjectsPage(this) },
-      { obj: this._blog, label: 'Blog', range: 45, action: () => showBlogPage(this) },
-      { obj: this._table, label: 'Desktop', range: 40, action: () => createModernDesktop(this) },
-      { obj: this._gaming, label: 'Arcade', range: 30, action: () => startSpaceShooterGame(this) },
-      { obj: this._credits, label: 'Credits', range: 30, action: () => showCredits(this, credits) },
-      { obj: this._instruction, label: 'Instructions', range: 30, action: () => sliderShow(this, ['./resources/images/instruction.png']) },
+      {
+        obj: this._about,
+        label: 'About',
+        range: 45,
+        action: () => showAboutPage(this),
+      },
+      {
+        obj: this._experience,
+        label: 'Experience',
+        range: 45,
+        action: () => showExperiencePage(this),
+      },
+      {
+        obj: this._project,
+        label: 'Projects',
+        range: 45,
+        action: () => showProjectsPage(this),
+      },
+      {
+        obj: this._blog,
+        label: 'Blog',
+        range: 45,
+        action: () => showBlogPage(this),
+      },
+      {
+        obj: this._table,
+        label: 'Desktop',
+        range: 40,
+        action: () => createModernDesktop(this),
+      },
+      {
+        obj: this._gaming,
+        label: 'Arcade',
+        range: 30,
+        action: () => startSpaceShooterGame(this),
+      },
+      {
+        obj: this._credits,
+        label: 'Credits',
+        range: 30,
+        action: () => showCredits(this, credits),
+      },
+      {
+        obj: this._instruction,
+        label: 'Instructions',
+        range: 30,
+        action: () => sliderShow(this, ['./resources/images/instruction.png']),
+      },
       { obj: this._car, label: 'Enter Car', range: 50, isCar: true },
-    ].filter(i => i.obj); // only include loaded objects
+    ].filter((i) => i.obj); // only include loaded objects
   }
 
   _EnterCar() {
@@ -503,7 +552,9 @@ class BasicCharacterController {
     // Show driving hint
     if (this._interactPrompt) {
       const isMobile = 'ontouchstart' in window;
-      this._interactPrompt.textContent = isMobile ? 'Tap to exit car' : 'Press F to exit · WASD to drive';
+      this._interactPrompt.textContent = isMobile
+        ? 'Tap to exit car'
+        : 'Press F to exit · WASD to drive';
       this._interactPrompt.style.display = 'block';
     }
   }
@@ -518,7 +569,7 @@ class BasicCharacterController {
       // Teleport character onto the platform
       this._target.position.set(-15, 0, -80);
       this._position.copy(this._target.position);
-      
+
       // Reset car to origin
       this._car.position.set(-15, 0, -190);
       this._car.rotation.y = -Math.PI / 2;
@@ -562,15 +613,20 @@ class BasicCharacterController {
     }
 
     // Clamp speed
-    this._carSpeed = Math.max(-maxSpeed * 0.4, Math.min(maxSpeed, this._carSpeed));
+    this._carSpeed = Math.max(
+      -maxSpeed * 0.4,
+      Math.min(maxSpeed, this._carSpeed),
+    );
 
     // Steering (only when moving)
     if (Math.abs(this._carSpeed) > 1) {
       if (input._keys.left) {
-        this._car.rotation.y -= steerSpeed * timeInSeconds * Math.sign(this._carSpeed);
+        this._car.rotation.y -=
+          steerSpeed * timeInSeconds * Math.sign(this._carSpeed);
       }
       if (input._keys.right) {
-        this._car.rotation.y += steerSpeed * timeInSeconds * Math.sign(this._carSpeed);
+        this._car.rotation.y +=
+          steerSpeed * timeInSeconds * Math.sign(this._carSpeed);
       }
     }
 
@@ -585,8 +641,16 @@ class BasicCharacterController {
     // Car Collision Detection
     const carBoxSize = 25;
     const carBBox = new THREE.Box3(
-      new THREE.Vector3(this._car.position.x - carBoxSize / 2, -10, this._car.position.z - carBoxSize / 2),
-      new THREE.Vector3(this._car.position.x + carBoxSize / 2, 20, this._car.position.z + carBoxSize / 2)
+      new THREE.Vector3(
+        this._car.position.x - carBoxSize / 2,
+        -10,
+        this._car.position.z - carBoxSize / 2,
+      ),
+      new THREE.Vector3(
+        this._car.position.x + carBoxSize / 2,
+        20,
+        this._car.position.z + carBoxSize / 2,
+      ),
     );
     const colliders = [...this._fence, ...this._objects];
     if (colliders.some((c) => c.intersectsBox(carBBox))) {
@@ -606,7 +670,8 @@ class BasicCharacterController {
 
   _CheckProximity() {
     if (!this._target || this._onaAnotherWindow || this._isDriving) {
-      if (this._interactPrompt && !this._isDriving) this._interactPrompt.style.display = 'none';
+      if (this._interactPrompt && !this._isDriving)
+        this._interactPrompt.style.display = 'none';
       return;
     }
 
@@ -633,9 +698,13 @@ class BasicCharacterController {
       if (nearest) {
         const isMobile = 'ontouchstart' in window;
         if (nearest.isCar) {
-          this._interactPrompt.textContent = isMobile ? `Tap to ${nearest.label}` : `Press F — ${nearest.label}`;
+          this._interactPrompt.textContent = isMobile
+            ? `Tap to ${nearest.label}`
+            : `Press F — ${nearest.label}`;
         } else {
-          this._interactPrompt.textContent = isMobile ? `Tap to open ${nearest.label}` : `Press F — ${nearest.label}`;
+          this._interactPrompt.textContent = isMobile
+            ? `Tap to open ${nearest.label}`
+            : `Press F — ${nearest.label}`;
         }
         this._interactPrompt.style.display = 'block';
       } else {
@@ -667,11 +736,14 @@ class BasicCharacterController {
       (event) => {
         // Ignore touches on UI elements (joystick, overlays, etc.)
         const target = event.target;
-        if (target.closest('#mobile-joystick') ||
+        if (
+          target.closest('#mobile-joystick') ||
           target.closest('.popup-overlay') ||
           target.closest('.ui-close-btn') ||
           target.closest('#welcome-screen') ||
-          target.closest('#loading-screen')) return;
+          target.closest('#loading-screen')
+        )
+          return;
 
         if (event.changedTouches.length > 0) {
           const touch = event.changedTouches[0];
@@ -724,9 +796,11 @@ class BasicCharacterController {
       const isInstructionClicked = intersects.some((intersect) =>
         isDescendantOf(intersect.object, this._instruction),
       );
-      const isCarClicked = this._car ? intersects.some((intersect) =>
-        isDescendantOf(intersect.object, this._car),
-      ) : false;
+      const isCarClicked = this._car
+        ? intersects.some((intersect) =>
+            isDescendantOf(intersect.object, this._car),
+          )
+        : false;
 
       if (isAboutClicked) {
         this._onaAnotherWindow = true;
@@ -755,7 +829,10 @@ class BasicCharacterController {
       } else if (isCarClicked) {
         if (this._isDriving) {
           this._ExitCar();
-        } else if (this._nearestInteractable && this._nearestInteractable.isCar) {
+        } else if (
+          this._nearestInteractable &&
+          this._nearestInteractable.isCar
+        ) {
           // Only enter if near the car
           this._EnterCar();
         }
@@ -863,17 +940,23 @@ class BasicCharacterController {
     sideways.normalize();
 
     // Rotate character to face the right direction
-    const isMovingForwardBack = this._input._keys.forward || this._input._keys.backward;
-    const isStrafing = this._input._keys.left || this._input._keys.right ||
-      this._input._keys.moveLeft || this._input._keys.moveRight;
+    const isMovingForwardBack =
+      this._input._keys.forward || this._input._keys.backward;
+    const isStrafing =
+      this._input._keys.left ||
+      this._input._keys.right ||
+      this._input._keys.moveLeft ||
+      this._input._keys.moveRight;
 
     if (isMovingForwardBack) {
       // When moving forward/backward, face the movement direction (GTA-style)
       let moveDir = new THREE.Vector3(0, 0, 0);
       if (this._input._keys.forward) moveDir.add(forward);
       if (this._input._keys.backward) moveDir.sub(forward);
-      if (this._input._keys.moveLeft || this._input._keys.left) moveDir.add(sideways);
-      if (this._input._keys.moveRight || this._input._keys.right) moveDir.sub(sideways);
+      if (this._input._keys.moveLeft || this._input._keys.left)
+        moveDir.add(sideways);
+      if (this._input._keys.moveRight || this._input._keys.right)
+        moveDir.sub(sideways);
 
       if (moveDir.lengthSq() > 0.001) {
         moveDir.normalize();
@@ -891,8 +974,12 @@ class BasicCharacterController {
     }
 
     // Move the character
-    const moveForward = forward.clone().multiplyScalar(velocity.z * timeInSeconds);
-    const moveSideways = sideways.clone().multiplyScalar(velocity.x * timeInSeconds);
+    const moveForward = forward
+      .clone()
+      .multiplyScalar(velocity.z * timeInSeconds);
+    const moveSideways = sideways
+      .clone()
+      .multiplyScalar(velocity.x * timeInSeconds);
 
     // Save old position before moving
     const oldPosition = new THREE.Vector3();
@@ -922,30 +1009,64 @@ class BasicCharacterController {
     if (this._car && !this._isDriving) {
       const carBoxSize = 20;
       const carBBox = new THREE.Box3(
-        new THREE.Vector3(this._car.position.x - carBoxSize / 2, -10, this._car.position.z - carBoxSize / 2),
-        new THREE.Vector3(this._car.position.x + carBoxSize / 2, 20, this._car.position.z + carBoxSize / 2)
+        new THREE.Vector3(
+          this._car.position.x - carBoxSize / 2,
+          -10,
+          this._car.position.z - carBoxSize / 2,
+        ),
+        new THREE.Vector3(
+          this._car.position.x + carBoxSize / 2,
+          20,
+          this._car.position.z + carBoxSize / 2,
+        ),
       );
       allColliders.push({ intersectsBox: (box) => box.intersectsBox(carBBox) });
     }
-    const collidesAfterMove = allColliders.some((c) => c.intersectsBox(newBBox));
+    const collidesAfterMove = allColliders.some((c) =>
+      c.intersectsBox(newBBox),
+    );
 
     if (collidesAfterMove) {
       // Try sliding along each axis independently instead of full revert
       // This feels much better than a hard stop — the player can slide along walls
 
       // Try X-only movement
-      const xOnlyPos = new THREE.Vector3(newPos.x, oldPosition.y, oldPosition.z);
+      const xOnlyPos = new THREE.Vector3(
+        newPos.x,
+        oldPosition.y,
+        oldPosition.z,
+      );
       const xBBox = new THREE.Box3(
-        new THREE.Vector3(xOnlyPos.x - boxSize / 2, xOnlyPos.y - boxSize / 2, xOnlyPos.z - boxSize / 2),
-        new THREE.Vector3(xOnlyPos.x + boxSize / 2, xOnlyPos.y + boxSize / 2, xOnlyPos.z + boxSize / 2),
+        new THREE.Vector3(
+          xOnlyPos.x - boxSize / 2,
+          xOnlyPos.y - boxSize / 2,
+          xOnlyPos.z - boxSize / 2,
+        ),
+        new THREE.Vector3(
+          xOnlyPos.x + boxSize / 2,
+          xOnlyPos.y + boxSize / 2,
+          xOnlyPos.z + boxSize / 2,
+        ),
       );
       const xCollides = allColliders.some((c) => c.intersectsBox(xBBox));
 
       // Try Z-only movement
-      const zOnlyPos = new THREE.Vector3(oldPosition.x, oldPosition.y, newPos.z);
+      const zOnlyPos = new THREE.Vector3(
+        oldPosition.x,
+        oldPosition.y,
+        newPos.z,
+      );
       const zBBox = new THREE.Box3(
-        new THREE.Vector3(zOnlyPos.x - boxSize / 2, zOnlyPos.y - boxSize / 2, zOnlyPos.z - boxSize / 2),
-        new THREE.Vector3(zOnlyPos.x + boxSize / 2, zOnlyPos.y + boxSize / 2, zOnlyPos.z + boxSize / 2),
+        new THREE.Vector3(
+          zOnlyPos.x - boxSize / 2,
+          zOnlyPos.y - boxSize / 2,
+          zOnlyPos.z - boxSize / 2,
+        ),
+        new THREE.Vector3(
+          zOnlyPos.x + boxSize / 2,
+          zOnlyPos.y + boxSize / 2,
+          zOnlyPos.z + boxSize / 2,
+        ),
       );
       const zCollides = allColliders.some((c) => c.intersectsBox(zBBox));
 
@@ -994,9 +1115,13 @@ class PortfolioWorld {
     });
     this._threejs.outputEncoding = THREE.sRGBEncoding;
     this._threejs.shadowMap.enabled = true;
-    this._threejs.shadowMap.type = mobile ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
+    this._threejs.shadowMap.type = mobile
+      ? THREE.BasicShadowMap
+      : THREE.PCFSoftShadowMap;
     // Cap pixel ratio at 2 on mobile to avoid GPU overload
-    this._threejs.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 2 : 3));
+    this._threejs.setPixelRatio(
+      Math.min(window.devicePixelRatio, mobile ? 2 : 3),
+    );
     this._threejs.setSize(window.innerWidth, window.innerHeight);
 
     document.body.appendChild(this._threejs.domElement);
@@ -1199,9 +1324,9 @@ class PortfolioWorld {
     const positions = new Float32Array(particleCount * 3);
 
     for (let i = 0; i < particleCount * 3; i += 3) {
-      positions[i] = (Math.random() - 0.5) * 400;     // x
-      positions[i + 1] = Math.random() * 40;            // y
-      positions[i + 2] = (Math.random() - 0.5) * 300;  // z
+      positions[i] = (Math.random() - 0.5) * 400; // x
+      positions[i + 1] = Math.random() * 40; // y
+      positions[i + 2] = (Math.random() - 0.5) * 300; // z
     }
 
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -1223,12 +1348,12 @@ class PortfolioWorld {
     this._glowLights = [];
 
     const glowPositions = [
-      { x: 0, y: 15, z: -8, color: 0x26fffd, intensity: 0.6 },      // About sign
-      { x: 98, y: 15, z: -58, color: 0x5b16d4, intensity: 0.5 },    // Project sign
-      { x: 98, y: 15, z: 43, color: 0xff6b35, intensity: 0.5 },     // Blog sign
-      { x: 110, y: 10, z: 0, color: 0x22c55e, intensity: 0.5 },     // Experience
-      { x: 308, y: 8, z: 0, color: 0x26fffd, intensity: 0.8 },      // Table/desk
-      { x: -55, y: 8, z: 3, color: 0xff4488, intensity: 0.5 },      // Lounge
+      { x: 0, y: 15, z: -8, color: 0x26fffd, intensity: 0.6 }, // About sign
+      { x: 98, y: 15, z: -58, color: 0x5b16d4, intensity: 0.5 }, // Project sign
+      { x: 98, y: 15, z: 43, color: 0xff6b35, intensity: 0.5 }, // Blog sign
+      { x: 110, y: 10, z: 0, color: 0x22c55e, intensity: 0.5 }, // Experience
+      { x: 308, y: 8, z: 0, color: 0x26fffd, intensity: 0.8 }, // Table/desk
+      { x: -55, y: 8, z: 3, color: 0xff4488, intensity: 0.5 }, // Lounge
     ];
 
     glowPositions.forEach((glow) => {
@@ -1252,8 +1377,8 @@ function initWelcomeParticles() {
     particle.className = 'welcome-particle';
     particle.style.left = Math.random() * 100 + '%';
     particle.style.animationDelay = Math.random() * 6 + 's';
-    particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
-    particle.style.width = (Math.random() * 4 + 1) + 'px';
+    particle.style.animationDuration = Math.random() * 4 + 4 + 's';
+    particle.style.width = Math.random() * 4 + 1 + 'px';
     particle.style.height = particle.style.width;
     container.appendChild(particle);
   }
@@ -1262,11 +1387,15 @@ function initWelcomeParticles() {
 // ===== HUD Key Highlighting =====
 function initHUDKeyHighlighting() {
   const keyMap = {
-    'w': 'hud-w', 'W': 'hud-w',
-    'a': 'hud-a', 'A': 'hud-a',
-    's': 'hud-s', 'S': 'hud-s',
-    'd': 'hud-d', 'D': 'hud-d',
-    'Shift': 'hud-shift',
+    w: 'hud-w',
+    W: 'hud-w',
+    a: 'hud-a',
+    A: 'hud-a',
+    s: 'hud-s',
+    S: 'hud-s',
+    d: 'hud-d',
+    D: 'hud-d',
+    Shift: 'hud-shift',
   };
 
   document.addEventListener('keydown', (e) => {
@@ -1307,77 +1436,85 @@ function initMobileJoystick() {
 
   let activeKeys = { w: false, a: false, s: false, d: false, shift: false };
 
-  base.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    isActive = true;
-    const touch = e.touches[0];
-    const rect = base.getBoundingClientRect();
-    startX = rect.left + rect.width / 2;
-    startY = rect.top + rect.height / 2;
-  }, { passive: false });
+  base.addEventListener(
+    'touchstart',
+    (e) => {
+      e.preventDefault();
+      isActive = true;
+      const touch = e.touches[0];
+      const rect = base.getBoundingClientRect();
+      startX = rect.left + rect.width / 2;
+      startY = rect.top + rect.height / 2;
+    },
+    { passive: false },
+  );
 
-  document.addEventListener('touchmove', (e) => {
-    if (!isActive) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    let dx = touch.clientX - startX;
-    let dy = touch.clientY - startY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!isActive) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      let dx = touch.clientX - startX;
+      let dy = touch.clientY - startY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist > maxDistance) {
-      dx = dx / dist * maxDistance;
-      dy = dy / dist * maxDistance;
-    }
+      if (dist > maxDistance) {
+        dx = (dx / dist) * maxDistance;
+        dy = (dy / dist) * maxDistance;
+      }
 
-    stick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      stick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
 
-    const thresholdY = 20; // Forward/backward deadzone
-    const thresholdX = 30; // Turning deadzone (larger to prevent accidental spins)
-    const isRunning = dist > maxDistance * 0.95; // Require full push to run
+      const thresholdY = 20; // Forward/backward deadzone
+      const thresholdX = 30; // Turning deadzone (larger to prevent accidental spins)
+      const isRunning = dist > maxDistance * 0.95; // Require full push to run
 
-    // Forward/backward (W=87, S=83)
-    if (dy < -thresholdY && !activeKeys.w) {
-      simulateKey(87, true);
-      activeKeys.w = true;
-    } else if (dy >= -thresholdY && activeKeys.w) {
-      simulateKey(87, false);
-      activeKeys.w = false;
-    }
+      // Forward/backward (W=87, S=83)
+      if (dy < -thresholdY && !activeKeys.w) {
+        simulateKey(87, true);
+        activeKeys.w = true;
+      } else if (dy >= -thresholdY && activeKeys.w) {
+        simulateKey(87, false);
+        activeKeys.w = false;
+      }
 
-    if (dy > thresholdY && !activeKeys.s) {
-      simulateKey(83, true);
-      activeKeys.s = true;
-    } else if (dy <= thresholdY && activeKeys.s) {
-      simulateKey(83, false);
-      activeKeys.s = false;
-    }
+      if (dy > thresholdY && !activeKeys.s) {
+        simulateKey(83, true);
+        activeKeys.s = true;
+      } else if (dy <= thresholdY && activeKeys.s) {
+        simulateKey(83, false);
+        activeKeys.s = false;
+      }
 
-    // Left/right rotation (A=65, D=68)
-    if (dx < -thresholdX && !activeKeys.a) {
-      simulateKey(65, true);
-      activeKeys.a = true;
-    } else if (dx >= -thresholdX && activeKeys.a) {
-      simulateKey(65, false);
-      activeKeys.a = false;
-    }
+      // Left/right rotation (A=65, D=68)
+      if (dx < -thresholdX && !activeKeys.a) {
+        simulateKey(65, true);
+        activeKeys.a = true;
+      } else if (dx >= -thresholdX && activeKeys.a) {
+        simulateKey(65, false);
+        activeKeys.a = false;
+      }
 
-    if (dx > thresholdX && !activeKeys.d) {
-      simulateKey(68, true);
-      activeKeys.d = true;
-    } else if (dx <= thresholdX && activeKeys.d) {
-      simulateKey(68, false);
-      activeKeys.d = false;
-    }
+      if (dx > thresholdX && !activeKeys.d) {
+        simulateKey(68, true);
+        activeKeys.d = true;
+      } else if (dx <= thresholdX && activeKeys.d) {
+        simulateKey(68, false);
+        activeKeys.d = false;
+      }
 
-    // Shift for running (16)
-    if (isRunning && !activeKeys.shift) {
-      simulateKey(16, true);
-      activeKeys.shift = true;
-    } else if (!isRunning && activeKeys.shift) {
-      simulateKey(16, false);
-      activeKeys.shift = false;
-    }
-  }, { passive: false });
+      // Shift for running (16)
+      if (isRunning && !activeKeys.shift) {
+        simulateKey(16, true);
+        activeKeys.shift = true;
+      } else if (!isRunning && activeKeys.shift) {
+        simulateKey(16, false);
+        activeKeys.shift = false;
+      }
+    },
+    { passive: false },
+  );
 
   const resetJoystick = () => {
     if (!isActive) return;
@@ -1385,11 +1522,26 @@ function initMobileJoystick() {
     stick.style.transform = 'translate(-50%, -50%)';
 
     // Release all keys
-    if (activeKeys.w) { simulateKey(87, false); activeKeys.w = false; }
-    if (activeKeys.a) { simulateKey(65, false); activeKeys.a = false; }
-    if (activeKeys.s) { simulateKey(83, false); activeKeys.s = false; }
-    if (activeKeys.d) { simulateKey(68, false); activeKeys.d = false; }
-    if (activeKeys.shift) { simulateKey(16, false); activeKeys.shift = false; }
+    if (activeKeys.w) {
+      simulateKey(87, false);
+      activeKeys.w = false;
+    }
+    if (activeKeys.a) {
+      simulateKey(65, false);
+      activeKeys.a = false;
+    }
+    if (activeKeys.s) {
+      simulateKey(83, false);
+      activeKeys.s = false;
+    }
+    if (activeKeys.d) {
+      simulateKey(68, false);
+      activeKeys.d = false;
+    }
+    if (activeKeys.shift) {
+      simulateKey(16, false);
+      activeKeys.shift = false;
+    }
   };
 
   document.addEventListener('touchend', resetJoystick);
@@ -1406,7 +1558,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // Update hint text for mobile
     const hintEl = document.getElementById('welcome-hint');
     if (hintEl) {
-      hintEl.textContent = 'Works on mobile · Use joystick to move · TAP to interact';
+      hintEl.textContent =
+        'Works on mobile · Use joystick to move · TAP to interact';
     }
   }
 
@@ -1425,6 +1578,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
       // Initialize the 3D world
       _APP = new PortfolioWorld();
+
+      // Request pointer lock immediately on desktop so mouse look starts right away
+      if (!_isMobile() && _APP?._threejs?.domElement?.requestPointerLock) {
+        _APP._threejs.domElement.requestPointerLock();
+      }
 
       // Initialize mobile joystick
       initMobileJoystick();
