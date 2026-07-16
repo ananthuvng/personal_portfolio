@@ -502,6 +502,16 @@ export function createModernDesktop(windowStateManager) {
     if (windowStateManager) {
       windowStateManager._onaAnotherWindow = false;
     }
+    // Request pointer lock immediately so mouse control returns on desktop
+    if (!('ontouchstart' in window)) {
+      const canvas = document.querySelector('canvas');
+      if (canvas && canvas.requestPointerLock) {
+        try {
+          canvas.requestPointerLock();
+        } catch (e) {}
+      }
+      document.body.style.cursor = '';
+    }
     container.style.transform = 'scale(0.8)';
     container.style.opacity = '0';
 

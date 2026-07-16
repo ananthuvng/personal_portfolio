@@ -97,6 +97,7 @@ class BasicCharacterController {
       return objectBox;
     });
     this._onaAnotherWindow = false;
+    this._fKeyPressed = false; // Guard to prevent rapid F key re-triggering
     this._LoadModels();
 
     this._AddMouseClickListener();
@@ -466,6 +467,15 @@ class BasicCharacterController {
     // F key to interact / enter-exit car
     document.addEventListener('keydown', (e) => {
       if (e.code === 'KeyF') {
+        // Debounce rapid F key presses
+        if (this._fKeyPressed) {
+          return;
+        }
+        this._fKeyPressed = true;
+        setTimeout(() => {
+          this._fKeyPressed = false;
+        }, 150); // 150ms debounce
+
         // If currently driving, exit the car
         if (this._isDriving) {
           this._ExitCar();
@@ -717,6 +727,11 @@ class BasicCharacterController {
     window.addEventListener(
       'click',
       (event) => {
+        // Disable direct object click interactions on desktop/non-touch devices.
+        if (!('ontouchstart' in window)) {
+          return;
+        }
+
         // If pointer is locked, raycast from center crosshair
         if (document.pointerLockElement) {
           this._OnMouseClick({

@@ -11,6 +11,7 @@ function unlockPointer() {
     document.exitPointerLock();
   }
   document.body.style.cursor = 'default';
+  document.documentElement.style.cursor = 'default';
 }
 
 function lockPointer() {
@@ -23,6 +24,7 @@ function lockPointer() {
 }
 
 function createOverlay(windowStateManager) {
+  unlockPointer();
   const overlay = document.createElement('div');
   overlay.className = 'popup-overlay';
   Object.assign(overlay.style, {
@@ -42,11 +44,23 @@ function createOverlay(windowStateManager) {
   });
 
   const closeOverlay = () => {
+    // Mark window state as closed immediately so F/key interactions can reopen other pages
+    if (windowStateManager) windowStateManager._onaAnotherWindow = false;
+
+    // Request pointer lock immediately (must be in the user gesture stack for desktop)
+    try {
+      lockPointer();
+    } catch (e) {}
+
+    // Start fade-out transition and remove after it completes
     overlay.style.opacity = '0';
     setTimeout(() => {
       if (document.body.contains(overlay)) document.body.removeChild(overlay);
       if (windowStateManager) windowStateManager._onaAnotherWindow = false;
-      lockPointer();
+      // Always remove the key handler when closing via any path
+      try {
+        document.removeEventListener('keydown', keyHandler, true);
+      } catch (e) {}
     }, 300);
   };
 
@@ -58,13 +72,16 @@ function createOverlay(windowStateManager) {
   // F key or Escape also closes the popup
   const keyHandler = (e) => {
     if (e.code === 'KeyF' || e.code === 'Escape') {
+      e.stopPropagation();
       closeOverlay();
-      document.removeEventListener('keydown', keyHandler);
+      try {
+        document.removeEventListener('keydown', keyHandler, true);
+      } catch (err) {}
     }
   };
-  document.addEventListener('keydown', keyHandler);
+  document.addEventListener('keydown', keyHandler, true);
 
-  return { overlay, closeBtn };
+  return { overlay, closeBtn, closeOverlay };
 }
 
 function createContentContainer() {
@@ -91,16 +108,9 @@ function createContentContainer() {
 
 function showPage(windowStateManager, container, closeBtn) {
   unlockPointer();
-  const { overlay } = createOverlay(windowStateManager);
-  // Re-attach closeBtn logic to this overlay
-  closeBtn.addEventListener('click', () => {
-    overlay.style.opacity = '0';
-    setTimeout(() => {
-      if (document.body.contains(overlay)) document.body.removeChild(overlay);
-      if (windowStateManager) windowStateManager._onaAnotherWindow = false;
-      lockPointer();
-    }, 300);
-  });
+  const { overlay, closeOverlay } = createOverlay(windowStateManager);
+  // Re-attach closeBtn to use the shared close logic so key handlers are cleaned up
+  closeBtn.addEventListener('click', closeOverlay);
   container.appendChild(closeBtn);
   overlay.appendChild(container);
   document.body.appendChild(overlay);
@@ -180,20 +190,7 @@ export function showAboutPage(windowStateManager) {
     </div>
   `;
 
-  const { overlay } = createOverlay(windowStateManager);
-  closeBtn.addEventListener('click', () => {
-    overlay.style.opacity = '0';
-    setTimeout(() => {
-      if (document.body.contains(overlay)) document.body.removeChild(overlay);
-      if (windowStateManager) windowStateManager._onaAnotherWindow = false;
-    }, 300);
-  });
-  container.appendChild(closeBtn);
-  overlay.appendChild(container);
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => {
-    overlay.style.opacity = '1';
-  });
+  showPage(windowStateManager, container, closeBtn);
 }
 
 // ===== EXPERIENCE PAGE =====
@@ -252,20 +249,7 @@ export function showExperiencePage(windowStateManager) {
     </div>
   `;
 
-  const { overlay } = createOverlay(windowStateManager);
-  closeBtn.addEventListener('click', () => {
-    overlay.style.opacity = '0';
-    setTimeout(() => {
-      if (document.body.contains(overlay)) document.body.removeChild(overlay);
-      if (windowStateManager) windowStateManager._onaAnotherWindow = false;
-    }, 300);
-  });
-  container.appendChild(closeBtn);
-  overlay.appendChild(container);
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => {
-    overlay.style.opacity = '1';
-  });
+  showPage(windowStateManager, container, closeBtn);
 }
 
 // ===== PROJECTS PAGE =====
@@ -330,20 +314,7 @@ export function showProjectsPage(windowStateManager) {
     </div>
   `;
 
-  const { overlay } = createOverlay(windowStateManager);
-  closeBtn.addEventListener('click', () => {
-    overlay.style.opacity = '0';
-    setTimeout(() => {
-      if (document.body.contains(overlay)) document.body.removeChild(overlay);
-      if (windowStateManager) windowStateManager._onaAnotherWindow = false;
-    }, 300);
-  });
-  container.appendChild(closeBtn);
-  overlay.appendChild(container);
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => {
-    overlay.style.opacity = '1';
-  });
+  showPage(windowStateManager, container, closeBtn);
 }
 
 // ===== BLOG PAGE =====
@@ -401,18 +372,5 @@ export function showBlogPage(windowStateManager) {
     </div>
   `;
 
-  const { overlay } = createOverlay(windowStateManager);
-  closeBtn.addEventListener('click', () => {
-    overlay.style.opacity = '0';
-    setTimeout(() => {
-      if (document.body.contains(overlay)) document.body.removeChild(overlay);
-      if (windowStateManager) windowStateManager._onaAnotherWindow = false;
-    }, 300);
-  });
-  container.appendChild(closeBtn);
-  overlay.appendChild(container);
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => {
-    overlay.style.opacity = '1';
-  });
+  showPage(windowStateManager, container, closeBtn);
 }

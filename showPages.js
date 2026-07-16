@@ -1,4 +1,24 @@
+function unlockPointer() {
+  if ('ontouchstart' in window) return;
+  if (document.pointerLockElement) {
+    document.exitPointerLock();
+  }
+  document.body.style.cursor = 'default';
+  document.documentElement.style.cursor = 'default';
+}
+
+function lockPointer() {
+  if ('ontouchstart' in window) return;
+  const canvas = document.querySelector('canvas');
+  if (canvas) {
+    canvas.requestPointerLock();
+  }
+  document.body.style.cursor = '';
+  document.documentElement.style.cursor = '';
+}
+
 export function sliderShow(windowStateManager, images, isAutoClose = false) {
+  unlockPointer();
   const popup = document.createElement('div');
   let autoCloseTimer;
   popup.id = 'about-popup';
@@ -150,28 +170,38 @@ export function sliderShow(windowStateManager, images, isAutoClose = false) {
 
     // Swipe gesture support for mobile
     let touchStartXSwipe = null;
-    imageContainer.addEventListener('touchstart', (e) => {
-      touchStartXSwipe = e.touches[0].clientX;
-    }, { passive: true });
+    imageContainer.addEventListener(
+      'touchstart',
+      (e) => {
+        touchStartXSwipe = e.touches[0].clientX;
+      },
+      { passive: true },
+    );
 
-    imageContainer.addEventListener('touchend', (e) => {
-      if (touchStartXSwipe === null) return;
-      const touchEndX = e.changedTouches[0].clientX;
-      const diffX = touchStartXSwipe - touchEndX;
-      const threshold = 50;
+    imageContainer.addEventListener(
+      'touchend',
+      (e) => {
+        if (touchStartXSwipe === null) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const diffX = touchStartXSwipe - touchEndX;
+        const threshold = 50;
 
-      if (Math.abs(diffX) > threshold) {
-        if (diffX > 0) {
-          // Swiped left — next
-          currentImageIndex = currentImageIndex < images.length - 1 ? currentImageIndex + 1 : 0;
-        } else {
-          // Swiped right — prev
-          currentImageIndex = currentImageIndex > 0 ? currentImageIndex - 1 : images.length - 1;
+        if (Math.abs(diffX) > threshold) {
+          if (diffX > 0) {
+            // Swiped left — next
+            currentImageIndex =
+              currentImageIndex < images.length - 1 ? currentImageIndex + 1 : 0;
+          } else {
+            // Swiped right — prev
+            currentImageIndex =
+              currentImageIndex > 0 ? currentImageIndex - 1 : images.length - 1;
+          }
+          imageWrapper.style.transform = `translateX(-${currentImageIndex * 100}%)`;
         }
-        imageWrapper.style.transform = `translateX(-${currentImageIndex * 100}%)`;
-      }
-      touchStartXSwipe = null;
-    }, { passive: true });
+        touchStartXSwipe = null;
+      },
+      { passive: true },
+    );
   }
 
   const closeButton = document.createElement('button');
@@ -192,9 +222,15 @@ export function sliderShow(windowStateManager, images, isAutoClose = false) {
     }, 300);
   };
 
-  closeButton.addEventListener('click', closePopup);
+  closeButton.addEventListener('click', () => {
+    lockPointer();
+    closePopup();
+  });
   popup.addEventListener('click', (e) => {
-    if (e.target === popup) closePopup();
+    if (e.target === popup) {
+      lockPointer();
+      closePopup();
+    }
   });
 
   sliderContainer.appendChild(imageWrapper);
