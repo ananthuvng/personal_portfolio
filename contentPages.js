@@ -160,21 +160,6 @@ export function showAboutPage(windowStateManager) {
       system reliability and security, and building internal tools that speed up delivery across teams.
     </p>
     <div style="${S.divider}"></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;">
-      <div style="text-align:center;padding:18px 10px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#26fffd,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">3+</div>
-        <div style="font-size:11px;color:rgba(240,240,245,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Years Exp</div>
-      </div>
-      <div style="text-align:center;padding:18px 10px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#26fffd,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">8.9</div>
-        <div style="font-size:11px;color:rgba(240,240,245,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:4px;">CGPA</div>
-      </div>
-      <div style="text-align:center;padding:18px 10px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#26fffd,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">AWS</div>
-        <div style="font-size:11px;color:rgba(240,240,245,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Certified</div>
-      </div>
-    </div>
-    <div style="${S.divider}"></div>
     <p style="${S.sectionLabel}">// Education</p>
     <div style="${S.card}">
       <h3 style="${S.subtitle}">NSS College of Engineering</h3>
